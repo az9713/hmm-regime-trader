@@ -1,0 +1,141 @@
+# Regime Trader — Configuration
+# ============================================================
+# Parameters marked [HYPERPARAMETER] require empirical calibration
+# via walk-forward backtester after implementation.
+# See design_docs/06_empirical_testing_plan.md for calibration protocol.
+#
+# Parameters marked [RISK POLICY] are fixed design choices.
+# Do NOT optimize these on historical data.
+# ============================================================
+
+# ── Data ────────────────────────────────────────────────────
+data:
+  symbols: ["SPY", "QQQ"]
+  start_date: "2010-01-01"
+  price_source: "yfinance"          # yfinance | alpaca | polygon
+  fred_series:
+    vix: "VIXCLS"
+    hy_oas: "BAMLH0A0HYM2"         # Duration-adjusted HY credit spread (replaces HYG/LQD)
+  cache_dir: "data/cache"
+  repair: true                      # yfinance repair=True
+
+# ── Feature Engineering ─────────────────────────────────────
+features:
+  realized_vol_window: 20           # days for rolling realized variance
+  normalization_window: 60          # [HYPERPARAMETER] rolling Z-score window. Test [40,60,80,100]
+  ewma_halflife: 10                 # days, for Moreira-Muir realized vol estimate
+
+# ── HMM Engine ──────────────────────────────────────────────
+# Ref: Hamilton (1989, Econometrica); Turner et al. (1989, JFE)
+hmm:
+  n_components_range: [3, 7]        # BIC sweep range. Literature: 2-4 states typical. [2.5-A tested [5,5]: no improvement, reverted]
+  covariance_type: "diag"           # diag = practical default. full = if BIC selects poorly.
+  n_iter: 100
+  tol: 1.0e-4
+  n_init: 10                        # K-means restarts; pick best log-likelihood
+  training_window: 500              # bars
+  retrain_every: 20                 # bars
+  random_state: 42
+
+# ── Regime Stability Filters ────────────────────────────────
+# Ref: Asem & Tian (2010, JFQA) — momentum highest in continuation states
+stability:
+  persistence_bars: 2               # [2.5-D LOCKED] Optimal from sweep [2,3,4]. Sharpe 0.785, MaxDD -31.6% — dominant result.
+  flicker_window: 20                # [HYPERPARAMETER] Test [10,15,20,25]
+  flicker_threshold: 4              # [HYPERPARAMETER] Test [3,4,5,6]
+  confidence_floor: 0.30            # [2.5-E LOCKED] Optimal from sweep [0.30,0.40,0.50]. Lower floor → more regime-specific allocation in bull markets.
+
+# ── Allocation ──────────────────────────────────────────────
+# Ref: Moreira & Muir (2017, Journal of Finance 72(4):1611-1644)
+# Primary: continuous formula w = min(target_vol / ewma_vol, max_leverage)
+# Fallback: discrete buckets below (used when vol history insufficient)
+allocation:
+  use_continuous_formula: true      # [2.5-C] Moreira-Muir continuous wins: Sharpe 0.785 vs 0.779 discrete, CAGR 9.63% vs 6.73%
+  target_vol: 0.18                  # [2.5-B LOCKED] Optimal from sweep [0.16,0.18,0.20]. Sharpe peaked at 0.18.
+  rebalance_threshold: 0.10         # [HYPERPARAMETER] Test [0.05,0.08,0.10,0.15]
+
+  # Discrete bucket fallback values — [HYPERPARAMETER] all values
+  # Derivation: practitioner discretization of Moreira-Muir at representative VIX levels
+  low_vol:
+    allocation: 0.95                # Test [0.80,0.85,0.90,0.95,1.00]
+    leverage: 1.25                  # Test [1.00,1.10,1.25]. Ref: Asness et al. (2012, FAJ)
+    max_leverage: 1.25
+  mid_vol:
+    allocation: 0.65                # Test [0.50,0.60,0.65,0.70,0.75]
+    leverage: 1.00
+    max_leverage: 1.25
+  high_vol:
+    allocation: 0.35                # Test [0.20,0.30,0.35,0.40,0.50]
+    leverage: 0.50
+    max_leverage: 1.25
+  uncertainty:
+    allocation: 0.50                # Reduce in uncertainty mode
+    leverage: 0.75
+
+# ── Trend Filter ────────────────────────────────────────────
+# Ref: Faber (2007, Journal of Wealth Management) — practitioner journal
+trend:
+  fast_ema: 50
+  slow_ema: 200
+
+# ── Stop Loss / Take Profit ─────────────────────────────────
+# [HYPERPARAMETER] — NO academic foundation for ATR multiples.
+# Ref: Lo & Remorov (2015, SSRN 2695383) — stop value is asset-specific.
+# Calibrate via 3-month paper trading. See design_docs/06_empirical_testing_plan.md §Group C.
+stops:
+  low_vol:
+    stop_atr: 3.0                   # Test [2.0,2.5,3.0,3.5,4.0]
+    target_atr: 6.0                 # Test [4.0,5.0,6.0,7.0]
+  mid_vol:
+    stop_atr: 2.5                   # Test [1.5,2.0,2.5,3.0,3.5]
+    target_atr: 5.0                 # Test [3.0,4.0,5.0,6.0]
+  high_vol:
+    stop_atr: 2.0                   # Test [1.0,1.5,2.0,2.5,3.0]
+    target_atr: 4.0                 # Test [2.0,3.0,4.0,5.0]
+
+# ── Position Sizing / Kelly ──────────────────────────────────
+# Fractional Kelly — general principle is grounded; regime fractions are [HYPERPARAMETER]
+sizing:
+  risk_per_trade: 0.01              # [RISK POLICY] 1% per trade. Do not optimize.
+  kelly_fraction:
+    low_vol: 0.333
+    mid_vol: 0.500
+    high_vol: 0.200
+    uncertainty: 0.200
+  max_concurrent_positions: 5       # [RISK POLICY] Increase only when adding tickers.
+
+# ── Risk Manager ────────────────────────────────────────────
+# [RISK POLICY] — circuit breakers are NOT hyperparameters.
+# Do NOT optimize on historical data. See design_docs/06_empirical_testing_plan.md §Group D.
+risk:
+  circuit_breakers:
+    daily_loss_warn: 0.02           # 2% — warning level
+    daily_loss_pause: 0.03          # 3% — pause new trades
+    weekly_loss_halt: 0.05          # 5% — halt for day
+    monthly_loss_review: 0.07       # 7% — manual review required
+    max_drawdown_stop: 0.10         # 10% — full stop, liquidate
+  correlation:
+    warn_threshold: 0.70            # Static MVP. Upgrade: Meucci ENB (design_docs/04)
+    block_threshold: 0.85
+    lookback_days: 60
+  max_position_pct: 0.30            # Max single-position weight
+
+# ── Backtester ──────────────────────────────────────────────
+backtest:
+  is_window: 252                    # bars (1 year IS)
+  oos_window: 126                   # bars (6 months OOS)
+  step_size: 63                     # bars (quarterly roll)
+  benchmark_seeds: 100              # random-entry baseline seeds
+
+# ── Broker ──────────────────────────────────────────────────
+broker:
+  mode: "paper"                     # paper | live
+  order_type: "bracket"             # bracket (entry + stop + target OCO)
+  slippage_bps: 5                   # assumed slippage in backtest
+
+# ── Monitoring ──────────────────────────────────────────────
+monitoring:
+  log_level: "INFO"
+  log_file: "logs/regime_trader.log"
+  alert_email: null                 # Set to enable email alerts
+  dashboard_port: 8050

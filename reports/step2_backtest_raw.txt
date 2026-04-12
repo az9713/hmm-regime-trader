@@ -1,0 +1,325 @@
+2026-04-11 14:29:12,152 | INFO     | main | Starting backtest: ['SPY', 'QQQ'], 2010-01-01 -> today
+2026-04-11 14:29:12,153 | INFO     | data.market_data | Fetching FRED series VIXCLS (2010-01-01 -> today)
+2026-04-11 14:29:12,666 | INFO     | data.market_data | Fetching FRED series BAMLH0A0HYM2 (2010-01-01 -> today)
+2026-04-11 14:29:12,950 | INFO     | data.market_data | Fetching SPY via yfinance (2010-01-01 -> today)
+2026-04-11 14:29:13,458 | WARNING  | data.market_data | SPY: 2 days with >10% daily move — verify data
+2026-04-11 14:29:13,459 | INFO     | data.market_data | Fetching QQQ via yfinance (2010-01-01 -> today)
+2026-04-11 14:29:13,755 | INFO     | yfinance | QQQ: 1d: div-adjust-repair-bad: Removing phantom div(s): ['2010-06-18']
+2026-04-11 14:29:13,795 | WARNING  | data.market_data | QQQ: 2 days with >10% daily move — verify data
+2026-04-11 14:29:13,801 | INFO     | backtest.backtester | Window 0: IS 2010-03-16 → 2011-03-14 | OOS 2011-03-15 → 2011-09-12
+2026-04-11 14:29:16,786 | WARNING  | hmmlearn.base | Model is not converging.  Current: -971.9962404104741 is not greater than -971.9962222512083. Delta is -1.8159265778194822e-05
+2026-04-11 14:29:18,190 | WARNING  | hmmlearn.base | Model is not converging.  Current: -938.1072347896614 is not greater than -938.1066611852558. Delta is -0.0005736044056448009
+2026-04-11 14:29:19,078 | WARNING  | hmmlearn.base | Model is not converging.  Current: -858.4748569783052 is not greater than -858.4744574911937. Delta is -0.00039948711150827876
+2026-04-11 14:29:20,252 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2171.8), labels={2: 'LowVol', 4: 'MidVol', 1: 'HighVol', 0: 'VeryHighVol', 3: 'HighVol'}
+2026-04-11 14:29:20,336 | INFO     | backtest.backtester | Window 0 OOS: Sharpe=-1.18 MaxDD=-18.7% n_states=5
+2026-04-11 14:29:20,336 | INFO     | backtest.backtester | Window 1: IS 2010-06-15 → 2011-06-13 | OOS 2011-06-14 → 2011-12-09
+2026-04-11 14:29:21,350 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1032.5946644550559 is not greater than -1032.5943300226982. Delta is -0.00033443235770391766
+2026-04-11 14:29:24,836 | WARNING  | hmmlearn.base | Model is not converging.  Current: -880.4533050745328 is not greater than -880.4354762182595. Delta is -0.01782885627324049
+2026-04-11 14:29:25,184 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2107.5), labels={1: 'LowVol', 3: 'MidVol', 4: 'HighVol', 0: 'VeryHighVol', 2: 'HighVol'}
+2026-04-11 14:29:25,314 | INFO     | backtest.backtester | Window 1 OOS: Sharpe=-0.41 MaxDD=-19.7% n_states=5
+2026-04-11 14:29:25,314 | INFO     | backtest.backtester | Window 2: IS 2010-09-14 → 2011-09-12 | OOS 2011-09-13 → 2012-03-13
+2026-04-11 14:29:30,152 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2522.9), labels={3: 'LowVol', 2: 'MidVol', 0: 'HighVol', 1: 'VeryHighVol', 4: 'HighVol'}
+2026-04-11 14:29:30,246 | INFO     | backtest.backtester | Window 2 OOS: Sharpe=1.82 MaxDD=-8.1% n_states=5
+2026-04-11 14:29:30,246 | INFO     | backtest.backtester | Window 3: IS 2010-12-13 → 2011-12-09 | OOS 2011-12-12 → 2012-06-12
+2026-04-11 14:29:31,964 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1144.597750223447 is not greater than -1144.5975219252844. Delta is -0.00022829816271041636
+2026-04-11 14:29:34,730 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2645.6), labels={4: 'LowVol', 3: 'MidVol', 2: 'HighVol', 0: 'VeryHighVol', 1: 'HighVol'}
+2026-04-11 14:29:34,857 | INFO     | backtest.backtester | Window 3 OOS: Sharpe=1.24 MaxDD=-11.6% n_states=5
+2026-04-11 14:29:34,857 | INFO     | backtest.backtester | Window 4: IS 2011-03-15 → 2012-03-13 | OOS 2012-03-14 → 2012-09-11
+2026-04-11 14:29:36,874 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1027.0705930968852 is not greater than -1027.070488925796. Delta is -0.00010417108910587558
+2026-04-11 14:29:39,389 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2413.6), labels={4: 'LowVol', 1: 'MidVol', 2: 'HighVol', 3: 'VeryHighVol', 0: 'HighVol'}
+2026-04-11 14:29:39,521 | INFO     | backtest.backtester | Window 4 OOS: Sharpe=-0.11 MaxDD=-12.2% n_states=5
+2026-04-11 14:29:39,521 | INFO     | backtest.backtester | Window 5: IS 2011-06-14 → 2012-06-12 | OOS 2012-06-13 → 2012-12-12
+2026-04-11 14:29:41,547 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1229.2656352571262 is not greater than -1229.2652296108113. Delta is -0.00040564631490269676
+2026-04-11 14:29:42,208 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1096.2414553072415 is not greater than -1096.241410145133. Delta is -4.516210856309044e-05
+2026-04-11 14:29:43,902 | INFO     | core.hmm_engine | HMM trained: n_states=6 (BIC=2495.3), labels={1: 'LowVol', 3: 'MidVol', 5: 'HighVol', 0: 'VeryHighVol', 2: 'HighVol', 4: 'HighVol'}
+2026-04-11 14:29:44,045 | INFO     | backtest.backtester | Window 5 OOS: Sharpe=1.54 MaxDD=-3.9% n_states=6
+2026-04-11 14:29:44,046 | INFO     | backtest.backtester | Window 6: IS 2011-09-13 → 2012-09-11 | OOS 2012-09-12 → 2013-03-15
+2026-04-11 14:29:48,575 | INFO     | core.hmm_engine | HMM trained: n_states=7 (BIC=2245.6), labels={5: 'LowVol', 1: 'MidVol', 3: 'HighVol', 0: 'VeryHighVol', 4: 'HighVol', 6: 'HighVol', 2: 'HighVol'}
+2026-04-11 14:29:48,725 | INFO     | backtest.backtester | Window 6 OOS: Sharpe=0.35 MaxDD=-9.0% n_states=7
+2026-04-11 14:29:48,726 | INFO     | backtest.backtester | Window 7: IS 2011-12-12 → 2012-12-12 | OOS 2012-12-13 → 2013-06-14
+2026-04-11 14:29:52,177 | WARNING  | hmmlearn.base | Model is not converging.  Current: -876.9135587307458 is not greater than -876.9135352654692. Delta is -2.346527651297947e-05
+2026-04-11 14:29:53,278 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2322.8), labels={1: 'LowVol', 0: 'MidVol', 4: 'HighVol', 2: 'VeryHighVol', 3: 'HighVol'}
+2026-04-11 14:29:53,384 | INFO     | backtest.backtester | Window 7 OOS: Sharpe=1.86 MaxDD=-3.7% n_states=5
+2026-04-11 14:29:53,384 | INFO     | backtest.backtester | Window 8: IS 2012-03-14 → 2013-03-15 | OOS 2013-03-18 → 2013-09-13
+2026-04-11 14:29:57,934 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2455.3), labels={3: 'LowVol', 4: 'MidVol', 0: 'HighVol', 2: 'VeryHighVol', 1: 'HighVol'}
+2026-04-11 14:29:58,066 | INFO     | backtest.backtester | Window 8 OOS: Sharpe=2.09 MaxDD=-4.0% n_states=5
+2026-04-11 14:29:58,067 | INFO     | backtest.backtester | Window 9: IS 2012-06-13 → 2013-06-14 | OOS 2013-06-17 → 2013-12-12
+2026-04-11 14:30:00,287 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1042.456095947833 is not greater than -1042.4559609967998. Delta is -0.00013495103326022218
+2026-04-11 14:30:00,955 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1026.5859619342946 is not greater than -1026.5858470227947. Delta is -0.000114911499849768
+2026-04-11 14:30:02,748 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2447.9), labels={4: 'LowVol', 1: 'MidVol', 0: 'HighVol', 2: 'VeryHighVol', 3: 'HighVol'}
+2026-04-11 14:30:02,877 | INFO     | backtest.backtester | Window 9 OOS: Sharpe=1.47 MaxDD=-5.6% n_states=5
+2026-04-11 14:30:02,878 | INFO     | backtest.backtester | Window 10: IS 2012-09-12 → 2013-09-13 | OOS 2013-09-16 → 2014-03-17
+2026-04-11 14:30:05,029 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1014.254352246139 is not greater than -1014.2542885788921. Delta is -6.366724687723035e-05
+2026-04-11 14:30:06,483 | WARNING  | hmmlearn.base | Model is not converging.  Current: -918.9722228610633 is not greater than -918.9721251595438. Delta is -9.770151950760919e-05
+2026-04-11 14:30:06,932 | WARNING  | hmmlearn.base | Model is not converging.  Current: -920.1643021483081 is not greater than -920.1639795024533. Delta is -0.0003226458547942457
+2026-04-11 14:30:07,471 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2385.1), labels={1: 'LowVol', 4: 'MidVol', 2: 'HighVol', 3: 'VeryHighVol', 0: 'HighVol'}
+2026-04-11 14:30:07,587 | INFO     | backtest.backtester | Window 10 OOS: Sharpe=1.67 MaxDD=-4.9% n_states=5
+2026-04-11 14:30:07,587 | INFO     | backtest.backtester | Window 11: IS 2012-12-13 → 2013-12-12 | OOS 2013-12-13 → 2014-06-16
+2026-04-11 14:30:12,601 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2322.9), labels={4: 'LowVol', 0: 'MidVol', 2: 'HighVol', 3: 'VeryHighVol', 1: 'HighVol'}
+2026-04-11 14:30:12,730 | INFO     | backtest.backtester | Window 11 OOS: Sharpe=1.29 MaxDD=-7.2% n_states=5
+2026-04-11 14:30:12,731 | INFO     | backtest.backtester | Window 12: IS 2013-03-18 → 2014-03-17 | OOS 2014-03-18 → 2014-09-15
+2026-04-11 14:30:14,834 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1052.3715193352027 is not greater than -1052.3714380611316. Delta is -8.127407113533991e-05
+2026-04-11 14:30:17,132 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2368.7), labels={3: 'LowVol', 4: 'MidVol', 0: 'HighVol', 2: 'VeryHighVol', 1: 'HighVol'}
+2026-04-11 14:30:17,260 | INFO     | backtest.backtester | Window 12 OOS: Sharpe=1.61 MaxDD=-4.9% n_states=5
+2026-04-11 14:30:17,261 | INFO     | backtest.backtester | Window 13: IS 2013-06-17 → 2014-06-16 | OOS 2014-06-17 → 2014-12-12
+2026-04-11 14:30:21,503 | WARNING  | hmmlearn.base | Model is not converging.  Current: -909.3605560049513 is not greater than -909.3605153313767. Delta is -4.067357451731368e-05
+2026-04-11 14:30:21,947 | WARNING  | hmmlearn.base | Model is not converging.  Current: -933.2186015089954 is not greater than -933.2185992039343. Delta is -2.305061116203433e-06
+2026-04-11 14:30:21,948 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2279.8), labels={3: 'LowVol', 2: 'MidVol', 0: 'HighVol', 1: 'VeryHighVol', 4: 'HighVol'}
+2026-04-11 14:30:22,078 | INFO     | backtest.backtester | Window 13 OOS: Sharpe=0.76 MaxDD=-4.8% n_states=5
+2026-04-11 14:30:22,079 | INFO     | backtest.backtester | Window 14: IS 2013-09-16 → 2014-09-15 | OOS 2014-09-16 → 2015-03-17
+2026-04-11 14:30:24,803 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1001.828460754961 is not greater than -1001.8283958728476. Delta is -6.488211340638372e-05
+2026-04-11 14:30:25,920 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1071.0329245133069 is not greater than -1071.032590042005. Delta is -0.0003344713018123002
+2026-04-11 14:30:26,418 | INFO     | core.hmm_engine | HMM trained: n_states=6 (BIC=2388.7), labels={0: 'LowVol', 4: 'MidVol', 1: 'HighVol', 5: 'VeryHighVol', 3: 'HighVol', 2: 'HighVol'}
+2026-04-11 14:30:26,571 | INFO     | backtest.backtester | Window 14 OOS: Sharpe=0.57 MaxDD=-8.5% n_states=6
+2026-04-11 14:30:26,572 | INFO     | backtest.backtester | Window 15: IS 2013-12-13 → 2014-12-12 | OOS 2014-12-15 → 2015-06-16
+2026-04-11 14:30:29,256 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1061.0064729862224 is not greater than -1061.0064066057737. Delta is -6.638044874307525e-05
+2026-04-11 14:30:29,865 | WARNING  | hmmlearn.base | Model is not converging.  Current: -929.6119272708509 is not greater than -929.6119234185144. Delta is -3.852336476484197e-06
+2026-04-11 14:30:30,272 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1061.7941656142293 is not greater than -1061.7940112896833. Delta is -0.00015432454597430478
+2026-04-11 14:30:30,894 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2411.3), labels={0: 'LowVol', 4: 'MidVol', 3: 'HighVol', 1: 'VeryHighVol', 2: 'HighVol'}
+2026-04-11 14:30:31,006 | INFO     | backtest.backtester | Window 15 OOS: Sharpe=0.68 MaxDD=-5.4% n_states=5
+2026-04-11 14:30:31,007 | INFO     | backtest.backtester | Window 16: IS 2014-03-18 → 2015-03-17 | OOS 2015-03-18 → 2015-09-15
+2026-04-11 14:30:31,891 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1073.1783183246316 is not greater than -1073.1783148882255. Delta is -3.436406132095726e-06
+2026-04-11 14:30:34,139 | WARNING  | hmmlearn.base | Model is not converging.  Current: -980.0205575313745 is not greater than -980.0205563406092. Delta is -1.1907652606168995e-06
+2026-04-11 14:30:34,394 | WARNING  | hmmlearn.base | Model is not converging.  Current: -967.7465341616835 is not greater than -967.7455386009838. Delta is -0.0009955606997209543
+2026-04-11 14:30:35,623 | WARNING  | hmmlearn.base | Model is not converging.  Current: -921.1069918847321 is not greater than -921.1064641572815. Delta is -0.0005277274506170215
+2026-04-11 14:30:35,779 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2357.1), labels={2: 'LowVol', 0: 'MidVol', 3: 'HighVol', 4: 'VeryHighVol', 1: 'HighVol'}
+2026-04-11 14:30:35,905 | INFO     | backtest.backtester | Window 16 OOS: Sharpe=-0.23 MaxDD=-6.7% n_states=5
+2026-04-11 14:30:35,906 | INFO     | backtest.backtester | Window 17: IS 2014-06-17 → 2015-06-16 | OOS 2015-06-17 → 2015-12-14
+2026-04-11 14:30:40,626 | INFO     | core.hmm_engine | HMM trained: n_states=7 (BIC=2315.8), labels={6: 'LowVol', 3: 'MidVol', 5: 'HighVol', 2: 'VeryHighVol', 0: 'HighVol', 4: 'HighVol', 1: 'HighVol'}
+2026-04-11 14:30:40,791 | INFO     | backtest.backtester | Window 17 OOS: Sharpe=-1.52 MaxDD=-14.2% n_states=7
+2026-04-11 14:30:40,792 | INFO     | backtest.backtester | Window 18: IS 2014-09-16 → 2015-09-15 | OOS 2015-09-16 → 2016-03-16
+2026-04-11 14:30:44,069 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1112.2586433920267 is not greater than -1112.2585837900838. Delta is -5.960194289400533e-05
+2026-04-11 14:30:45,328 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1094.4436370736746 is not greater than -1094.4436179310705. Delta is -1.914260406010726e-05
+2026-04-11 14:30:45,745 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2592.3), labels={1: 'LowVol', 2: 'MidVol', 0: 'HighVol', 4: 'VeryHighVol', 3: 'HighVol'}
+2026-04-11 14:30:45,876 | INFO     | backtest.backtester | Window 18 OOS: Sharpe=0.30 MaxDD=-10.3% n_states=5
+2026-04-11 14:30:45,876 | INFO     | backtest.backtester | Window 19: IS 2014-12-15 → 2015-12-14 | OOS 2015-12-15 → 2016-06-15
+2026-04-11 14:30:47,859 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1105.1589877949539 is not greater than -1105.156797502949. Delta is -0.0021902920047978114
+2026-04-11 14:30:48,109 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1131.3713936717047 is not greater than -1131.3712331925558. Delta is -0.00016047914891714754
+2026-04-11 14:30:50,784 | INFO     | core.hmm_engine | HMM trained: n_states=4 (BIC=2453.8), labels={2: 'LowVol', 0: 'MidVol', 3: 'HighVol', 1: 'VeryHighVol'}
+2026-04-11 14:30:50,893 | INFO     | backtest.backtester | Window 19 OOS: Sharpe=0.47 MaxDD=-12.7% n_states=4
+2026-04-11 14:30:50,894 | INFO     | backtest.backtester | Window 20: IS 2015-03-18 → 2016-03-16 | OOS 2016-03-17 → 2016-09-14
+2026-04-11 14:30:55,750 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2400.1), labels={2: 'LowVol', 1: 'MidVol', 0: 'HighVol', 4: 'VeryHighVol', 3: 'HighVol'}
+2026-04-11 14:30:55,840 | INFO     | backtest.backtester | Window 20 OOS: Sharpe=0.74 MaxDD=-6.8% n_states=5
+2026-04-11 14:30:55,840 | INFO     | backtest.backtester | Window 21: IS 2015-06-17 → 2016-06-15 | OOS 2016-06-16 → 2016-12-13
+2026-04-11 14:31:00,230 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2440.3), labels={3: 'LowVol', 0: 'MidVol', 1: 'HighVol', 4: 'VeryHighVol', 2: 'HighVol'}
+2026-04-11 14:31:00,359 | INFO     | backtest.backtester | Window 21 OOS: Sharpe=0.79 MaxDD=-5.5% n_states=5
+2026-04-11 14:31:00,359 | INFO     | backtest.backtester | Window 22: IS 2015-09-16 → 2016-09-14 | OOS 2016-09-15 → 2017-03-16
+2026-04-11 14:31:04,572 | INFO     | core.hmm_engine | HMM trained: n_states=6 (BIC=2232.5), labels={0: 'LowVol', 2: 'MidVol', 1: 'HighVol', 5: 'VeryHighVol', 3: 'HighVol', 4: 'HighVol'}
+2026-04-11 14:31:04,719 | INFO     | backtest.backtester | Window 22 OOS: Sharpe=2.85 MaxDD=-4.9% n_states=6
+2026-04-11 14:31:04,719 | INFO     | backtest.backtester | Window 23: IS 2015-12-15 → 2016-12-13 | OOS 2016-12-14 → 2017-06-15
+2026-04-11 14:31:08,359 | WARNING  | hmmlearn.base | Model is not converging.  Current: -966.5199544428707 is not greater than -966.5167974948752. Delta is -0.00315694799553512
+2026-04-11 14:31:08,641 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2328.9), labels={0: 'LowVol', 2: 'MidVol', 4: 'HighVol', 1: 'VeryHighVol', 3: 'HighVol'}
+2026-04-11 14:31:08,769 | INFO     | backtest.backtester | Window 23 OOS: Sharpe=1.98 MaxDD=-3.6% n_states=5
+2026-04-11 14:31:08,770 | INFO     | backtest.backtester | Window 24: IS 2016-03-17 → 2017-03-16 | OOS 2017-03-17 → 2017-09-14
+2026-04-11 14:31:11,556 | WARNING  | hmmlearn.base | Model is not converging.  Current: -895.6828747383565 is not greater than -895.6828723711797. Delta is -2.3671768758504186e-06
+2026-04-11 14:31:12,844 | INFO     | core.hmm_engine | HMM trained: n_states=4 (BIC=2067.6), labels={2: 'LowVol', 0: 'MidVol', 1: 'HighVol', 3: 'VeryHighVol'}
+2026-04-11 14:31:12,955 | INFO     | backtest.backtester | Window 24 OOS: Sharpe=1.31 MaxDD=-2.3% n_states=4
+2026-04-11 14:31:12,955 | INFO     | backtest.backtester | Window 25: IS 2016-06-16 → 2017-06-15 | OOS 2017-06-16 → 2017-12-13
+2026-04-11 14:31:17,075 | INFO     | core.hmm_engine | HMM trained: n_states=4 (BIC=2177.0), labels={0: 'LowVol', 2: 'MidVol', 1: 'HighVol', 3: 'VeryHighVol'}
+2026-04-11 14:31:17,186 | INFO     | backtest.backtester | Window 25 OOS: Sharpe=2.70 MaxDD=-1.7% n_states=4
+2026-04-11 14:31:17,186 | INFO     | backtest.backtester | Window 26: IS 2016-09-15 → 2017-09-14 | OOS 2017-09-15 → 2018-03-16
+2026-04-11 14:31:20,336 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1006.2365071683436 is not greater than -1006.2364581190652. Delta is -4.904927834559203e-05
+2026-04-11 14:31:22,304 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2363.4), labels={4: 'LowVol', 3: 'MidVol', 0: 'HighVol', 1: 'VeryHighVol', 2: 'HighVol'}
+2026-04-11 14:31:22,432 | INFO     | backtest.backtester | Window 26 OOS: Sharpe=3.32 MaxDD=-5.2% n_states=5
+2026-04-11 14:31:22,432 | INFO     | backtest.backtester | Window 27: IS 2016-12-14 → 2017-12-13 | OOS 2017-12-14 → 2018-06-15
+2026-04-11 14:31:26,117 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1034.6806562884099 is not greater than -1034.680623231454. Delta is -3.3056955771826324e-05
+2026-04-11 14:31:27,557 | INFO     | core.hmm_engine | HMM trained: n_states=4 (BIC=2250.6), labels={1: 'LowVol', 0: 'MidVol', 3: 'HighVol', 2: 'VeryHighVol'}
+2026-04-11 14:31:27,642 | INFO     | backtest.backtester | Window 27 OOS: Sharpe=0.45 MaxDD=-12.0% n_states=4
+2026-04-11 14:31:27,642 | INFO     | backtest.backtester | Window 28: IS 2017-03-17 → 2018-03-16 | OOS 2018-03-19 → 2018-09-14
+2026-04-11 14:31:32,311 | INFO     | core.hmm_engine | HMM trained: n_states=6 (BIC=2584.5), labels={1: 'LowVol', 0: 'MidVol', 3: 'HighVol', 4: 'VeryHighVol', 2: 'HighVol', 5: 'HighVol'}
+2026-04-11 14:31:32,405 | INFO     | backtest.backtester | Window 28 OOS: Sharpe=0.64 MaxDD=-4.7% n_states=6
+2026-04-11 14:31:32,406 | INFO     | backtest.backtester | Window 29: IS 2017-06-16 → 2018-06-15 | OOS 2018-06-18 → 2018-12-14
+2026-04-11 14:31:37,241 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2513.0), labels={0: 'LowVol', 2: 'MidVol', 3: 'HighVol', 1: 'VeryHighVol', 4: 'HighVol'}
+2026-04-11 14:31:37,369 | INFO     | backtest.backtester | Window 29 OOS: Sharpe=0.07 MaxDD=-6.3% n_states=5
+2026-04-11 14:31:37,369 | INFO     | backtest.backtester | Window 30: IS 2017-09-15 → 2018-09-14 | OOS 2018-09-17 → 2019-03-19
+2026-04-11 14:31:40,167 | WARNING  | hmmlearn.base | Model is not converging.  Current: -963.6315990900143 is not greater than -963.6315135926143. Delta is -8.549740005037165e-05
+2026-04-11 14:31:42,024 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2381.9), labels={0: 'LowVol', 3: 'MidVol', 1: 'HighVol', 2: 'VeryHighVol', 4: 'HighVol'}
+2026-04-11 14:31:42,097 | INFO     | backtest.backtester | Window 30 OOS: Sharpe=-1.25 MaxDD=-20.9% n_states=5
+2026-04-11 14:31:42,098 | INFO     | backtest.backtester | Window 31: IS 2017-12-14 → 2018-12-14 | OOS 2018-12-17 → 2019-06-18
+2026-04-11 14:31:46,408 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2702.4), labels={2: 'LowVol', 0: 'MidVol', 4: 'HighVol', 1: 'VeryHighVol', 3: 'HighVol'}
+2026-04-11 14:31:46,537 | INFO     | backtest.backtester | Window 31 OOS: Sharpe=1.74 MaxDD=-6.3% n_states=5
+2026-04-11 14:31:46,538 | INFO     | backtest.backtester | Window 32: IS 2018-03-19 → 2019-03-19 | OOS 2019-03-20 → 2019-09-17
+2026-04-11 14:31:49,305 | WARNING  | hmmlearn.base | Model is not converging.  Current: -894.6270503586796 is not greater than -894.6262536669475. Delta is -0.000796691732148247
+2026-04-11 14:31:49,409 | WARNING  | hmmlearn.base | Model is not converging.  Current: -949.8120899410209 is not greater than -949.8119012754494. Delta is -0.0001886655714997687
+2026-04-11 14:31:51,202 | INFO     | core.hmm_engine | HMM trained: n_states=6 (BIC=2253.7), labels={3: 'LowVol', 0: 'MidVol', 2: 'HighVol', 5: 'VeryHighVol', 4: 'HighVol', 1: 'HighVol'}
+2026-04-11 14:31:51,321 | INFO     | backtest.backtester | Window 32 OOS: Sharpe=0.98 MaxDD=-8.3% n_states=6
+2026-04-11 14:31:51,322 | INFO     | backtest.backtester | Window 33: IS 2018-06-18 → 2019-06-18 | OOS 2019-06-19 → 2019-12-16
+2026-04-11 14:31:55,671 | INFO     | core.hmm_engine | HMM trained: n_states=6 (BIC=2419.8), labels={5: 'LowVol', 0: 'MidVol', 3: 'HighVol', 1: 'VeryHighVol', 2: 'HighVol', 4: 'HighVol'}
+2026-04-11 14:31:55,813 | INFO     | backtest.backtester | Window 33 OOS: Sharpe=1.35 MaxDD=-7.6% n_states=6
+2026-04-11 14:31:55,813 | INFO     | backtest.backtester | Window 34: IS 2018-09-17 → 2019-09-17 | OOS 2019-09-18 → 2020-03-18
+2026-04-11 14:32:00,115 | INFO     | core.hmm_engine | HMM trained: n_states=6 (BIC=2394.3), labels={0: 'LowVol', 5: 'MidVol', 4: 'HighVol', 1: 'VeryHighVol', 2: 'HighVol', 3: 'HighVol'}
+2026-04-11 14:32:00,261 | INFO     | backtest.backtester | Window 34 OOS: Sharpe=-0.56 MaxDD=-16.6% n_states=6
+2026-04-11 14:32:00,261 | INFO     | backtest.backtester | Window 35: IS 2018-12-17 → 2019-12-16 | OOS 2019-12-17 → 2020-06-17
+2026-04-11 14:32:01,174 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1017.0312930149444 is not greater than -1017.0309436518243. Delta is -0.0003493631201081371
+2026-04-11 14:32:02,214 | WARNING  | hmmlearn.base | Model is not converging.  Current: -882.213231038867 is not greater than -882.2132077725917. Delta is -2.326627532056591e-05
+2026-04-11 14:32:04,115 | WARNING  | hmmlearn.base | Model is not converging.  Current: -813.3656251010233 is not greater than -813.3654632616931. Delta is -0.00016183933018965035
+2026-04-11 14:32:04,525 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2104.3), labels={2: 'LowVol', 1: 'MidVol', 4: 'HighVol', 0: 'VeryHighVol', 3: 'HighVol'}
+2026-04-11 14:32:04,661 | INFO     | backtest.backtester | Window 35 OOS: Sharpe=-0.18 MaxDD=-23.8% n_states=5
+2026-04-11 14:32:04,662 | INFO     | backtest.backtester | Window 36: IS 2019-03-20 → 2020-03-18 | OOS 2020-03-19 → 2020-09-16
+2026-04-11 14:32:09,335 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2520.0), labels={1: 'LowVol', 2: 'MidVol', 0: 'HighVol', 4: 'VeryHighVol', 3: 'HighVol'}
+2026-04-11 14:32:09,465 | INFO     | backtest.backtester | Window 36 OOS: Sharpe=2.26 MaxDD=-5.8% n_states=5
+2026-04-11 14:32:09,465 | INFO     | backtest.backtester | Window 37: IS 2019-06-19 → 2020-06-17 | OOS 2020-06-18 → 2020-12-15
+2026-04-11 14:32:13,226 | WARNING  | hmmlearn.base | Model is not converging.  Current: -899.019073799385 is not greater than -899.0185075143778. Delta is -0.0005662850071530556
+2026-04-11 14:32:13,733 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2159.6), labels={3: 'LowVol', 0: 'MidVol', 1: 'HighVol', 2: 'VeryHighVol', 4: 'HighVol'}
+2026-04-11 14:32:13,865 | INFO     | backtest.backtester | Window 37 OOS: Sharpe=1.82 MaxDD=-8.3% n_states=5
+2026-04-11 14:32:13,866 | INFO     | backtest.backtester | Window 38: IS 2019-09-18 → 2020-09-16 | OOS 2020-09-17 → 2021-03-18
+2026-04-11 14:32:14,131 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1035.6733509959715 is not greater than -1035.6733378426932. Delta is -1.3153278359823162e-05
+2026-04-11 14:32:17,889 | WARNING  | hmmlearn.base | Model is not converging.  Current: -991.4680850095784 is not greater than -991.4680622184363. Delta is -2.2791142100686557e-05
+2026-04-11 14:32:18,076 | INFO     | core.hmm_engine | HMM trained: n_states=6 (BIC=2024.7), labels={2: 'LowVol', 0: 'MidVol', 5: 'HighVol', 1: 'VeryHighVol', 4: 'HighVol', 3: 'HighVol'}
+2026-04-11 14:32:18,221 | INFO     | backtest.backtester | Window 38 OOS: Sharpe=1.77 MaxDD=-8.9% n_states=6
+2026-04-11 14:32:18,221 | INFO     | backtest.backtester | Window 39: IS 2019-12-17 → 2020-12-15 | OOS 2020-12-16 → 2021-06-17
+2026-04-11 14:32:22,030 | WARNING  | hmmlearn.base | Model is not converging.  Current: -951.6382857801441 is not greater than -951.6381817189292. Delta is -0.0001040612148699438
+2026-04-11 14:32:22,837 | INFO     | core.hmm_engine | HMM trained: n_states=6 (BIC=2335.2), labels={4: 'LowVol', 3: 'MidVol', 1: 'HighVol', 0: 'VeryHighVol', 5: 'HighVol', 2: 'HighVol'}
+2026-04-11 14:32:22,982 | INFO     | backtest.backtester | Window 39 OOS: Sharpe=1.74 MaxDD=-4.7% n_states=6
+2026-04-11 14:32:22,982 | INFO     | backtest.backtester | Window 40: IS 2020-03-19 → 2021-03-18 | OOS 2021-03-19 → 2021-09-16
+2026-04-11 14:32:23,272 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1288.3929161791966 is not greater than -1288.3927383717335. Delta is -0.00017780746316020668
+2026-04-11 14:32:27,510 | INFO     | core.hmm_engine | HMM trained: n_states=7 (BIC=2004.0), labels={0: 'LowVol', 4: 'MidVol', 3: 'HighVol', 5: 'VeryHighVol', 6: 'HighVol', 1: 'HighVol', 2: 'HighVol'}
+2026-04-11 14:32:27,675 | INFO     | backtest.backtester | Window 40 OOS: Sharpe=2.88 MaxDD=-5.0% n_states=7
+2026-04-11 14:32:27,675 | INFO     | backtest.backtester | Window 41: IS 2020-06-18 → 2021-06-17 | OOS 2021-06-18 → 2021-12-15
+2026-04-11 14:32:28,459 | WARNING  | hmmlearn.base | Model is not converging.  Current: -862.3303231162525 is not greater than -862.330310028145. Delta is -1.3088107493786083e-05
+2026-04-11 14:32:30,454 | WARNING  | hmmlearn.base | Model is not converging.  Current: -780.949038976856 is not greater than -780.9490133829335. Delta is -2.559392248713266e-05
+2026-04-11 14:32:32,419 | INFO     | core.hmm_engine | HMM trained: n_states=4 (BIC=1912.0), labels={0: 'LowVol', 2: 'MidVol', 1: 'HighVol', 3: 'VeryHighVol'}
+2026-04-11 14:32:32,530 | INFO     | backtest.backtester | Window 41 OOS: Sharpe=2.31 MaxDD=-3.6% n_states=4
+2026-04-11 14:32:32,531 | INFO     | backtest.backtester | Window 42: IS 2020-09-17 → 2021-09-16 | OOS 2021-09-17 → 2022-03-17
+2026-04-11 14:32:35,439 | WARNING  | hmmlearn.base | Model is not converging.  Current: -950.9567044589776 is not greater than -950.956659271644. Delta is -4.518733362601779e-05
+2026-04-11 14:32:37,592 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2246.7), labels={4: 'LowVol', 3: 'MidVol', 0: 'HighVol', 1: 'VeryHighVol', 2: 'HighVol'}
+2026-04-11 14:32:37,719 | INFO     | backtest.backtester | Window 42 OOS: Sharpe=0.07 MaxDD=-11.4% n_states=5
+2026-04-11 14:32:37,720 | INFO     | backtest.backtester | Window 43: IS 2020-12-16 → 2021-12-15 | OOS 2021-12-16 → 2022-06-16
+2026-04-11 14:32:40,959 | WARNING  | hmmlearn.base | Model is not converging.  Current: -997.4462275178787 is not greater than -997.4462274523324. Delta is -6.554625997523544e-08
+2026-04-11 14:32:42,669 | INFO     | core.hmm_engine | HMM trained: n_states=6 (BIC=2436.8), labels={5: 'LowVol', 4: 'MidVol', 2: 'HighVol', 1: 'VeryHighVol', 3: 'HighVol', 0: 'HighVol'}
+2026-04-11 14:32:42,822 | INFO     | backtest.backtester | Window 43 OOS: Sharpe=-1.87 MaxDD=-18.4% n_states=6
+2026-04-11 14:32:42,822 | INFO     | backtest.backtester | Window 44: IS 2021-03-19 → 2022-03-17 | OOS 2022-03-18 → 2022-09-16
+2026-04-11 14:32:47,718 | INFO     | core.hmm_engine | HMM trained: n_states=6 (BIC=2516.8), labels={4: 'LowVol', 1: 'MidVol', 0: 'HighVol', 3: 'VeryHighVol', 5: 'HighVol', 2: 'HighVol'}
+2026-04-11 14:32:47,864 | INFO     | backtest.backtester | Window 44 OOS: Sharpe=-1.53 MaxDD=-19.8% n_states=6
+2026-04-11 14:32:47,865 | INFO     | backtest.backtester | Window 45: IS 2021-06-18 → 2022-06-16 | OOS 2022-06-17 → 2022-12-15
+2026-04-11 14:32:53,135 | INFO     | core.hmm_engine | HMM trained: n_states=7 (BIC=2702.1), labels={3: 'LowVol', 1: 'MidVol', 5: 'HighVol', 4: 'VeryHighVol', 6: 'HighVol', 2: 'HighVol', 0: 'HighVol'}
+2026-04-11 14:32:53,282 | INFO     | backtest.backtester | Window 45 OOS: Sharpe=0.97 MaxDD=-11.4% n_states=7
+2026-04-11 14:32:53,283 | INFO     | backtest.backtester | Window 46: IS 2021-09-17 → 2022-09-16 | OOS 2022-09-19 → 2023-03-20
+2026-04-11 14:32:57,368 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1090.0603002591483 is not greater than -1090.0602802515355. Delta is -2.0007612874906044e-05
+2026-04-11 14:32:58,391 | INFO     | core.hmm_engine | HMM trained: n_states=7 (BIC=2677.4), labels={3: 'LowVol', 4: 'MidVol', 5: 'HighVol', 2: 'VeryHighVol', 1: 'HighVol', 6: 'HighVol', 0: 'HighVol'}
+2026-04-11 14:32:58,558 | INFO     | backtest.backtester | Window 46 OOS: Sharpe=0.12 MaxDD=-8.9% n_states=7
+2026-04-11 14:32:58,558 | INFO     | backtest.backtester | Window 47: IS 2021-12-16 → 2022-12-15 | OOS 2022-12-16 → 2023-06-20
+2026-04-11 14:33:03,826 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2572.8), labels={2: 'LowVol', 4: 'MidVol', 0: 'HighVol', 3: 'VeryHighVol', 1: 'HighVol'}
+2026-04-11 14:33:03,956 | INFO     | backtest.backtester | Window 47 OOS: Sharpe=1.62 MaxDD=-8.9% n_states=5
+2026-04-11 14:33:03,956 | INFO     | backtest.backtester | Window 48: IS 2022-03-18 → 2023-03-20 | OOS 2023-03-21 → 2023-09-19
+2026-04-11 14:33:09,012 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2536.1), labels={2: 'LowVol', 3: 'MidVol', 0: 'HighVol', 4: 'VeryHighVol', 1: 'HighVol'}
+2026-04-11 14:33:09,143 | INFO     | backtest.backtester | Window 48 OOS: Sharpe=1.18 MaxDD=-4.0% n_states=5
+2026-04-11 14:33:09,143 | INFO     | backtest.backtester | Window 49: IS 2022-06-17 → 2023-06-20 | OOS 2023-06-21 → 2023-12-18
+2026-04-11 14:33:11,707 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1079.282923417153 is not greater than -1079.282828417082. Delta is -9.500007081442163e-05
+2026-04-11 14:33:12,044 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1012.6874937349214 is not greater than -1012.6874839026667. Delta is -9.83225470463367e-06
+2026-04-11 14:33:13,399 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1125.2912812614054 is not greater than -1125.2912702103931. Delta is -1.1051012279494898e-05
+2026-04-11 14:33:13,850 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1064.2983018506504 is not greater than -1064.29828738207. Delta is -1.4468580502580153e-05
+2026-04-11 14:33:13,852 | INFO     | core.hmm_engine | HMM trained: n_states=6 (BIC=2382.0), labels={1: 'LowVol', 5: 'MidVol', 0: 'HighVol', 2: 'VeryHighVol', 3: 'HighVol', 4: 'HighVol'}
+2026-04-11 14:33:13,968 | INFO     | backtest.backtester | Window 49 OOS: Sharpe=1.50 MaxDD=-12.6% n_states=6
+2026-04-11 14:33:13,968 | INFO     | backtest.backtester | Window 50: IS 2022-09-19 → 2023-09-19 | OOS 2023-09-20 → 2024-03-20
+2026-04-11 14:33:16,848 | WARNING  | hmmlearn.base | Model is not converging.  Current: -954.0172664411276 is not greater than -954.0171243834942. Delta is -0.0001420576334112411
+2026-04-11 14:33:17,794 | WARNING  | hmmlearn.base | Model is not converging.  Current: -946.8434165783056 is not greater than -946.8432657722291. Delta is -0.0001508060764763286
+2026-04-11 14:33:18,965 | WARNING  | hmmlearn.base | Model is not converging.  Current: -962.1064263889571 is not greater than -962.1064096247266. Delta is -1.6764230508670153e-05
+2026-04-11 14:33:18,966 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2314.6), labels={3: 'LowVol', 4: 'MidVol', 0: 'HighVol', 2: 'VeryHighVol', 1: 'HighVol'}
+2026-04-11 14:33:19,094 | INFO     | backtest.backtester | Window 50 OOS: Sharpe=3.35 MaxDD=-7.4% n_states=5
+2026-04-11 14:33:19,094 | INFO     | backtest.backtester | Window 51: IS 2022-12-16 → 2023-12-18 | OOS 2023-12-19 → 2024-06-20
+2026-04-11 14:33:20,697 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1042.143464811433 is not greater than -1042.1433274816632. Delta is -0.00013732976981373213
+2026-04-11 14:33:23,139 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2286.5), labels={2: 'LowVol', 3: 'MidVol', 0: 'HighVol', 4: 'VeryHighVol', 1: 'HighVol'}
+2026-04-11 14:33:23,272 | INFO     | backtest.backtester | Window 51 OOS: Sharpe=2.11 MaxDD=-4.8% n_states=5
+2026-04-11 14:33:23,273 | INFO     | backtest.backtester | Window 52: IS 2023-03-21 → 2024-03-20 | OOS 2024-03-21 → 2024-09-19
+2026-04-11 14:33:24,931 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1103.7069845583128 is not greater than -1103.7069680110117. Delta is -1.6547301129321568e-05
+2026-04-11 14:33:25,595 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1021.7289133664467 is not greater than -1021.7288692297956. Delta is -4.413665112679155e-05
+2026-04-11 14:33:26,744 | WARNING  | hmmlearn.base | Model is not converging.  Current: -1139.1132726322373 is not greater than -1139.1132606965043. Delta is -1.1935733027712558e-05
+2026-04-11 14:33:27,106 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2348.4), labels={4: 'LowVol', 1: 'MidVol', 0: 'HighVol', 2: 'VeryHighVol', 3: 'HighVol'}
+2026-04-11 14:33:27,241 | INFO     | backtest.backtester | Window 52 OOS: Sharpe=1.08 MaxDD=-6.7% n_states=5
+2026-04-11 14:33:27,241 | INFO     | backtest.backtester | Window 53: IS 2023-06-21 → 2024-06-20 | OOS 2024-06-21 → 2024-12-18
+2026-04-11 14:33:31,404 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2387.6), labels={3: 'LowVol', 0: 'MidVol', 1: 'HighVol', 2: 'VeryHighVol', 4: 'HighVol'}
+2026-04-11 14:33:31,531 | INFO     | backtest.backtester | Window 53 OOS: Sharpe=0.63 MaxDD=-10.6% n_states=5
+2026-04-11 14:33:31,532 | INFO     | backtest.backtester | Window 54: IS 2023-09-20 → 2024-09-19 | OOS 2024-09-20 → 2025-03-24
+2026-04-11 14:33:35,874 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2676.1), labels={1: 'LowVol', 3: 'MidVol', 2: 'HighVol', 0: 'VeryHighVol', 4: 'HighVol'}
+2026-04-11 14:33:36,000 | INFO     | backtest.backtester | Window 54 OOS: Sharpe=0.73 MaxDD=-6.2% n_states=5
+2026-04-11 14:33:36,001 | INFO     | backtest.backtester | Window 55: IS 2023-12-19 → 2024-12-18 | OOS 2024-12-19 → 2025-06-24
+2026-04-11 14:33:40,309 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2473.7), labels={3: 'LowVol', 4: 'MidVol', 0: 'HighVol', 1: 'VeryHighVol', 2: 'HighVol'}
+2026-04-11 14:33:40,438 | INFO     | backtest.backtester | Window 55 OOS: Sharpe=-0.57 MaxDD=-19.7% n_states=5
+2026-04-11 14:33:40,439 | INFO     | backtest.backtester | Window 56: IS 2024-03-21 → 2025-03-24 | OOS 2025-03-25 → 2025-09-23
+2026-04-11 14:33:44,876 | INFO     | core.hmm_engine | HMM trained: n_states=5 (BIC=2591.7), labels={2: 'LowVol', 3: 'MidVol', 0: 'HighVol', 1: 'VeryHighVol', 4: 'HighVol'}
+2026-04-11 14:33:45,002 | INFO     | backtest.backtester | Window 56 OOS: Sharpe=1.56 MaxDD=-10.6% n_states=5
+2026-04-11 14:33:45,002 | INFO     | backtest.backtester | Window 57: IS 2024-06-21 → 2025-06-24 | OOS 2025-06-25 → 2025-12-22
+2026-04-11 14:33:49,554 | INFO     | core.hmm_engine | HMM trained: n_states=6 (BIC=2554.4), labels={5: 'LowVol', 2: 'MidVol', 0: 'HighVol', 1: 'VeryHighVol', 3: 'HighVol', 4: 'HighVol'}
+2026-04-11 14:33:49,706 | INFO     | backtest.backtester | Window 57 OOS: Sharpe=2.15 MaxDD=-3.8% n_states=6
+2026-04-11 14:33:49,707 | INFO     | backtest.backtester | Window 58: IS 2024-09-20 → 2025-09-23 | OOS 2025-09-24 → 2026-03-25
+2026-04-11 14:33:52,888 | WARNING  | hmmlearn.base | Model is not converging.  Current: -849.37174106959 is not greater than -849.3717065860253. Delta is -3.448356471835723e-05
+2026-04-11 14:33:54,099 | WARNING  | hmmlearn.base | Model is not converging.  Current: -943.5553584483358 is not greater than -943.5552861786293. Delta is -7.226970649298892e-05
+2026-04-11 14:33:54,101 | INFO     | core.hmm_engine | HMM trained: n_states=6 (BIC=2111.5), labels={0: 'LowVol', 5: 'MidVol', 1: 'HighVol', 2: 'VeryHighVol', 4: 'HighVol', 3: 'HighVol'}
+2026-04-11 14:33:54,249 | INFO     | backtest.backtester | Window 58 OOS: Sharpe=0.27 MaxDD=-6.4% n_states=6
+2026-04-11 14:33:54,260 | INFO     | backtest.backtester | Aggregate OOS: {'cagr': 0.09830392191980364, 'sharpe': 0.7394010538533174, 'sortino': 0.8905308967459682, 'calmar': 0.26718345064657373, 'max_drawdown': -0.36792668738244044, 'max_drawdown_duration_bars': 983, 'total_return': 14.551794942212641, 'n_bars': 7375}
+2026-04-11 14:33:55,954 | INFO     | trade_logger | Backtest complete. Log: logs\backtest_20260411_142912.jsonl
+
+=== Walk-Forward Backtest Summary ===
+ window   is_start    oos_end  n_states      cagr    sharpe   sortino    calmar  max_drawdown  max_drawdown_duration_bars  total_return  n_bars
+      0 2010-03-16 2011-09-12         5 -0.223921 -1.178240 -1.361078 -1.197604     -0.186974                          93     -0.119047     126
+      1 2010-06-15 2011-12-09         5 -0.101009 -0.409158 -0.506459 -0.511805     -0.197359                         109     -0.051849     126
+      2 2010-09-14 2012-03-13         5  0.333432  1.821127  2.564867  4.136952     -0.080598                          44      0.154743     126
+      3 2010-12-13 2012-06-12         5  0.192405  1.237700  1.945545  1.653422     -0.116368                          49      0.091973     126
+      4 2011-03-15 2012-09-11         5 -0.029432 -0.114475 -0.160961 -0.240915     -0.122169                         112     -0.014826     126
+      5 2011-06-14 2012-12-12         6  0.182700  1.536320  2.346531  4.677470     -0.039060                          45      0.087520     126
+      6 2011-09-13 2013-03-15         7  0.035508  0.350116  0.402598  0.393964     -0.090130                          90      0.017599     126
+      7 2011-12-12 2013-06-14         5  0.225482  1.855204  2.372742  6.144775     -0.036695                          23      0.107015     126
+      8 2012-03-14 2013-09-13         5  0.224034  2.090032  2.572098  5.562695     -0.040274                          38      0.106360     126
+      9 2012-06-13 2013-12-12         5  0.152167  1.474219  1.815045  2.740078     -0.055534                          66      0.073390     126
+     10 2012-09-12 2014-03-17         5  0.207584  1.669448  2.416579  4.262357     -0.048702                          51      0.098901     126
+     11 2012-12-13 2014-06-16         5  0.166268  1.294735  1.452055  2.307895     -0.072043                          43      0.079939     126
+     12 2013-03-18 2014-09-15         5  0.162594  1.610198  1.900668  3.302505     -0.049233                          32      0.078236     126
+     13 2013-06-17 2014-12-12         5  0.065746  0.759050  0.873433  1.364406     -0.048186                          40      0.032350     126
+     14 2013-09-16 2015-03-17         6  0.077760  0.572703  0.829917  0.915552     -0.084932                          32      0.038152     126
+     15 2013-12-13 2015-06-16         5  0.075898  0.681050  0.985396  1.395421     -0.054391                          74      0.037255     126
+     16 2014-03-18 2015-09-15         5 -0.032123 -0.229893 -0.346194 -0.479535     -0.066988                          80     -0.016193     126
+     17 2014-06-17 2015-12-14         7 -0.212679 -1.523107 -1.580322 -1.493009     -0.142450                         103     -0.112689     126
+     18 2014-09-16 2016-03-16         5  0.034820  0.302772  0.440491  0.338158     -0.102969                          91      0.017261     126
+     19 2014-12-15 2016-06-15         4  0.062078  0.470414  0.717571  0.489541     -0.126808                          71      0.030572     126
+     20 2015-03-18 2016-09-14         5  0.096502  0.740331  0.837347  1.416318     -0.068136                          28      0.047140     126
+     21 2015-06-17 2016-12-13         5  0.083630  0.794751  0.826655  1.515404     -0.055187                          84      0.040976     126
+     22 2015-09-16 2017-03-16         6  0.310735  2.848835  5.540529  6.381502     -0.048693                          37      0.144873     126
+     23 2015-12-15 2017-06-15         5  0.159232  1.978852  2.554190  4.395444     -0.036227                          74      0.076676     126
+     24 2016-03-17 2017-09-14         4  0.089622  1.311034  1.444357  3.813908     -0.023499                          35      0.043849     126
+     25 2016-06-16 2017-12-13         4  0.145776  2.696356  3.076027  8.830413     -0.016508                          23      0.070409     126
+     26 2016-09-15 2018-03-16         5  0.310552  3.316174  4.144048  5.929641     -0.052373                          34      0.144794     126
+     27 2016-12-14 2018-06-15         4  0.056203  0.445261  0.441531  0.469846     -0.119620                          97      0.027717     126
+     28 2017-03-17 2018-09-14         6  0.062410  0.644317  0.725688  1.321393     -0.047231                          53      0.030733     126
+     29 2017-06-16 2018-12-14         5  0.002432  0.073587  0.100354  0.038792     -0.062690                          59      0.001215     126
+     30 2017-09-15 2019-03-19         5 -0.205580 -1.249658 -1.418146 -0.981630     -0.209427                         122     -0.108697     126
+     31 2017-12-14 2019-06-18         5  0.220155  1.736129  2.270122  3.519802     -0.062548                          34      0.104606     126
+     32 2018-03-19 2019-09-17         6  0.127946  0.978554  1.097966  1.533273     -0.083446                          36      0.062048     126
+     33 2018-06-18 2019-12-16         6  0.144200  1.345926  1.462491  1.907523     -0.075595                          69      0.069673     126
+     34 2018-09-17 2020-03-18         6 -0.121456 -0.561580 -0.570808 -0.731488     -0.166039                          41     -0.062693     126
+     35 2018-12-17 2020-06-17         5 -0.069710 -0.177742 -0.206412 -0.293459     -0.237547                          83     -0.035485     126
+     36 2019-03-20 2020-09-16         5  0.403600  2.258697  2.645827  6.951315     -0.058061                          30      0.184736     126
+     37 2019-06-19 2020-12-15         5  0.310169  1.816184  1.968533  3.718773     -0.083406                          72      0.144626     126
+     38 2019-09-18 2021-03-18         6  0.288439  1.770760  2.149140  3.242749     -0.088949                          24      0.135094     126
+     39 2019-12-17 2021-06-17         6  0.279887  1.740617  2.124044  5.900431     -0.047435                          23      0.131321     126
+     40 2020-03-19 2021-09-16         7  0.348217  2.879089  3.866110  7.003851     -0.049718                          29      0.161127     126
+     41 2020-06-18 2021-12-15         4  0.219374  2.312882  3.286191  6.103260     -0.035944                          48      0.104253     126
+     42 2020-09-17 2022-03-17         5 -0.001273  0.071160  0.104327 -0.011178     -0.113907                          51     -0.000637     126
+     43 2020-12-16 2022-06-16         6 -0.303135 -1.873637 -2.943255 -1.647610     -0.183984                         114     -0.165215     126
+     44 2021-03-19 2022-09-16         6 -0.254997 -1.530076 -1.940412 -1.288482     -0.197905                         118     -0.136864     126
+     45 2021-06-18 2022-12-15         7  0.162379  0.974206  1.681110  1.428514     -0.113670                          85      0.078137     126
+     46 2021-09-17 2023-03-20         7  0.004293  0.117344  0.219899  0.048245     -0.088980                          37      0.002144     126
+     47 2021-12-16 2023-06-20         5  0.261215  1.619533  2.433023  2.931438     -0.089108                          82      0.123038     126
+     48 2022-03-18 2023-09-19         5  0.104321  1.182698  1.847019  2.639323     -0.039526                          35      0.050867     126
+     49 2022-06-17 2023-12-18         6  0.225369  1.504998  2.311035  1.792652     -0.125718                          86      0.106964     126
+     50 2022-09-19 2024-03-20         5  0.551646  3.349025  5.025891  7.490218     -0.073649                          18      0.245651     126
+     51 2022-12-16 2024-06-20         5  0.248670  2.114099  2.939542  5.208764     -0.047741                          62      0.117439     126
+     52 2023-03-21 2024-09-19         5  0.127328  1.081935  1.419438  1.908844     -0.066704                          45      0.061757     126
+     53 2023-06-21 2024-12-18         5  0.081500  0.632769  0.687739  0.769376     -0.105930                          80      0.039952     126
+     54 2023-09-20 2025-03-24         5  0.085624  0.727791  0.910176  1.390514     -0.061578                          29      0.041933     126
+     55 2023-12-19 2025-06-24         5 -0.124426 -0.572054 -0.651578 -0.631981     -0.196883                          86     -0.064279     126
+     56 2024-03-21 2025-09-23         5  0.245150  1.558257  1.525362  2.317167     -0.105797                          62      0.115863     126
+     57 2024-06-21 2025-12-22         6  0.216876  2.150392  2.875286  5.680453     -0.038179                          37      0.103121     126
+     58 2024-09-20 2026-03-25         6  0.026661  0.271974  0.332676  0.416749     -0.063974                          40      0.013243     1262026-04-11 14:33:55,962 | INFO     | main | Running stress period tests...
+2026-04-11 14:34:14,078 | INFO     | core.hmm_engine | HMM trained: n_states=7 (BIC=11449.7), labels={4: 'LowVol', 3: 'MidVol', 2: 'HighVol', 1: 'VeryHighVol', 6: 'HighVol', 0: 'HighVol', 5: 'HighVol'}
+2026-04-11 14:34:14,145 | INFO     | backtest.stress_test | Stress [2020_covid_crash]: PASS | HighVol=100% | AvgAlloc=0.98
+2026-04-11 14:34:33,121 | INFO     | core.hmm_engine | HMM trained: n_states=7 (BIC=11464.4), labels={3: 'LowVol', 4: 'MidVol', 0: 'HighVol', 5: 'VeryHighVol', 6: 'HighVol', 1: 'HighVol', 2: 'HighVol'}
+2026-04-11 14:34:33,339 | INFO     | backtest.stress_test | Stress [2022_rate_hike_bear]: PASS | HighVol=97% | AvgAlloc=0.71
+
+
+Aggregate OOS metrics: {'cagr': 0.09830392191980364, 'sharpe': 0.7394010538533174, 'sortino': 0.8905308967459682, 'calmar': 0.26718345064657373, 'max_drawdown': -0.36792668738244044, 'max_drawdown_duration_bars': 983, 'total_return': 14.551794942212641, 'n_bars': 7375}
+SPA test: {'t_spa': -4.18621297587384e-05, 'p_value': 0.893, 'n_benchmarks': 2, 'n_bootstrap': 1000, 'interpretation': 'Fail to reject H0 — performance may be luck'}
+
+Stress [2020_covid_crash]: PASS ✓ | HighVol=100% | AvgAlloc=0.98
+
+Stress [2022_rate_hike_bear]: PASS ✓ | HighVol=97% | AvgAlloc=0.71
