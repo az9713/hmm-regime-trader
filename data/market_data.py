@@ -67,6 +67,35 @@ class DataManager:
         )
         return series.dropna()
 
+    def get_term_spread(self, start: str, end: str = None) -> pd.Series:
+        """
+        10yr minus 2yr Treasury yield spread from FRED T10Y2Y.
+        Yield curve shape: negative (inverted) = recession risk, steep = expansion.
+        Ref: Estrella & Mishkin (1998, Review of Economics and Statistics 80(1):45-61).
+        Level series — somewhat stationary (oscillates around 0, doesn't trend indefinitely).
+        """
+        series = self.macro_source.get_series(
+            self.settings["data"]["fred_series"]["term_spread"], start, end
+        )
+        return series.dropna()
+
+    def get_gold(self, start: str, end: str = None) -> pd.Series:
+        """
+        Gold price via yfinance GLD ETF (iShares Gold Trust, tracks spot gold, 2004-present).
+        Used as log returns in feature engineering — flight-to-safety signal.
+        Ref: Baur & Lucey (2010, Financial Review 46(1):217-229) — gold is a
+        hedge and safe haven during extreme equity market conditions.
+        Returns Close price series (log returns computed in FeatureEngineer).
+        """
+        ticker = self.settings["data"].get("gold_ticker", "GLD")
+        logger.info(f"Fetching gold ({ticker}) via yfinance ({start} -> {end or 'today'})")
+        df = yf.Ticker(ticker).history(start=start, end=end, auto_adjust=True)
+        if df.empty:
+            raise ValueError(f"yfinance returned empty data for gold ticker {ticker}")
+        series = df["Close"]
+        series.index = pd.to_datetime(series.index).tz_localize(None)
+        return series.dropna()
+
     def get_all_features(self, symbols: list, start: str, end: str = None) -> dict:
         """
         Fetch prices + macro for all symbols.

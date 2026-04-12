@@ -97,6 +97,8 @@ class WalkForwardBacktester:
         vix: pd.Series,
         hy_oas: pd.Series,
         primary_symbol: str = "SPY",
+        gold: pd.Series = None,
+        term_spread: pd.Series = None,
     ) -> BacktestResult:
         """
         Run full walk-forward backtest.
@@ -106,13 +108,15 @@ class WalkForwardBacktester:
             vix:            VIX series from FRED
             hy_oas:         HY OAS series from FRED
             primary_symbol: benchmark symbol for buy-hold comparison
+            gold:           Gold price series from FRED (optional, improves regime detection)
+            term_spread:    10yr-2yr yield spread from FRED (optional, macro cycle signal)
         """
         result = BacktestResult(settings=self.settings)
 
         # Build feature matrix for primary symbol
         fe = FeatureEngineer(self.settings)
         spy_prices = prices[primary_symbol]
-        features = fe.compute(spy_prices, vix, hy_oas)
+        features = fe.compute(spy_prices, vix, hy_oas, gold=gold, term_spread=term_spread)
 
         # Align price index to feature index (features drop NaN warm-up rows)
         spy_close = spy_prices["Close"].reindex(features.index)

@@ -22,6 +22,17 @@
 #      Same Guidolin-Timmermann justification. Duration-adjusted: pure credit signal.
 #      NOT HYG/LQD ratio (duration mismatch confounds rate + credit risk).
 #
+#   5. Gold log returns (FRED GOLDAMGBD228NLBM)
+#      Flight-to-safety cross-asset signal independent of VIX/OAS.
+#      Ref: Baur & Lucey (2010, Financial Review 46(1):217-229) — gold is a
+#      hedge and safe haven during extreme equity market conditions. Adds
+#      information not captured by implied vol (VIX) or credit spreads (OAS).
+#
+#   6. Term spread — 10yr minus 2yr yield (FRED T10Y2Y)
+#      Yield curve shape as macro cycle indicator. Negative = inverted = recession.
+#      Ref: Estrella & Mishkin (1998, Review of Economics and Statistics 80(1):45-61).
+#      Captures rate/macro regime; does not overlap with HY OAS (credit) or VIX (implied vol).
+#
 # Normalization: 60-day rolling Z-score.
 #   arXiv:2402.05272 (2024): returns + realized vol are the robust features;
 #   extra features marginal. Keep feature set small.
@@ -36,12 +47,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Feature column order — must be consistent across train and live
-FEATURE_COLS = ["log_return", "realized_variance", "vix", "hy_oas"]
+FEATURE_COLS = ["log_return", "realized_variance", "vix", "hy_oas", "gold_return", "term_spread"]
 
 
 class FeatureEngineer:
     """
-    Builds the (T, 4) observation matrix for HMM training and inference.
+    Builds the (T, 6) observation matrix for HMM training and inference.
     Persists normalization scaler — apply identical transform at live inference.
     """
 
@@ -55,10 +66,15 @@ class FeatureEngineer:
         prices: pd.DataFrame,
         vix: pd.Series,
         hy_oas: pd.Series,
+        gold: pd.Series = None,
+        term_spread: pd.Series = None,
     ) -> pd.DataFrame:
         """
-        Full pipeline: raw OHLCV + macro → normalized (T, 4) feature matrix.
+        Full pipeline: raw OHLCV + macro → normalized (T, 6) feature matrix.
         Returns DataFrame with FEATURE_COLS columns, same index as prices.
+
+        gold and term_spread are optional for backward compatibility;
+        if omitted, those columns are filled with 0 (no regime signal).
         """
         df = pd.DataFrame(index=prices.index)
 
@@ -78,10 +94,24 @@ class FeatureEngineer:
         oas_aligned = hy_oas.reindex(prices.index, method="ffill", limit=3)
         df["hy_oas"] = oas_aligned
 
+        # 5. Gold log returns — flight-to-safety cross-asset signal
+        if gold is not None:
+            gold_aligned = gold.reindex(prices.index, method="ffill", limit=3)
+            df["gold_return"] = compute_log_returns(gold_aligned)
+        else:
+            df["gold_return"] = 0.0
+
+        # 6. Term spread (10yr-2yr) — yield curve shape / macro cycle
+        if term_spread is not None:
+            ts_aligned = term_spread.reindex(prices.index, method="ffill", limit=3)
+            df["term_spread"] = ts_aligned
+        else:
+            df["term_spread"] = 0.0
+
         df = df[FEATURE_COLS].copy()
         df = df.dropna()
 
-        # 5. Rolling Z-score normalization
+        # 7. Rolling Z-score normalization
         df_norm = self._normalize(df)
 
         logger.debug(f"Feature matrix: {df_norm.shape}, {df_norm.index[0].date()} → {df_norm.index[-1].date()}")
@@ -117,7 +147,7 @@ class FeatureEngineer:
         return np.array(result)
 
     def get_observation_matrix(self, features_df: pd.DataFrame) -> np.ndarray:
-        """Return (T, 4) numpy array for hmmlearn."""
+        """Return (T, 6) numpy array for hmmlearn."""
         return features_df[FEATURE_COLS].values
 
 

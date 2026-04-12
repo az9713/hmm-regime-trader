@@ -16,6 +16,8 @@ data:
   fred_series:
     vix: "VIXCLS"
     hy_oas: "BAMLH0A0HYM2"         # Duration-adjusted HY credit spread (replaces HYG/LQD)
+    term_spread: "T10Y2Y"          # 10yr-2yr Treasury spread — yield curve shape, recession signal
+  gold_ticker: "GLD"               # Gold ETF via yfinance — flight-to-safety cross-asset signal (available 2004+)
   cache_dir: "data/cache"
   repair: true                      # yfinance repair=True
 

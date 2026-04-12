@@ -77,11 +77,14 @@ def run_backtest(settings: dict, start_date: str = None):
     dm = DataManager(settings, mode="backtest")
     vix = dm.get_vix(start)
     hy_oas = dm.get_hy_oas(start)
+    gold = dm.get_gold(start)
+    term_spread = dm.get_term_spread(start)
     prices = {sym: dm.get_bars(sym, start) for sym in symbols}
 
     # Walk-forward
     backtester = WalkForwardBacktester(settings)
-    result = backtester.run(prices, vix, hy_oas, primary_symbol="SPY")
+    result = backtester.run(prices, vix, hy_oas, primary_symbol="SPY",
+                            gold=gold, term_spread=term_spread)
 
     # Log all windows
     for window in result.windows:
@@ -156,10 +159,12 @@ def run_paper(settings: dict, credentials: dict = None):
     warmup_start = settings["data"]["start_date"]
     vix = dm.get_vix(warmup_start)
     hy_oas = dm.get_hy_oas(warmup_start)
+    gold = dm.get_gold(warmup_start)
+    term_spread = dm.get_term_spread(warmup_start)
     spy_prices = dm.get_bars("SPY", warmup_start)
 
     engine = HMMEngine(settings)
-    features = fe.compute(spy_prices, vix, hy_oas)
+    features = fe.compute(spy_prices, vix, hy_oas, gold=gold, term_spread=term_spread)
     engine.fit(features.values)
     logger.info(f"HMM trained on warmup data: n_states={engine.n_states}")
 
@@ -171,13 +176,16 @@ def run_paper(settings: dict, credentials: dict = None):
             recent_prices = client.get_bars(symbol, start=warmup_start)
             recent_vix = dm.get_vix(warmup_start)
             recent_oas = dm.get_hy_oas(warmup_start)
+            recent_gold = dm.get_gold(warmup_start)
+            recent_ts = dm.get_term_spread(warmup_start)
 
             # Features
-            feat = fe.compute(recent_prices, recent_vix, recent_oas)
+            feat = fe.compute(recent_prices, recent_vix, recent_oas,
+                              gold=recent_gold, term_spread=recent_ts)
             if len(feat) < 10:
                 return
 
-            # Retrain if needed
+            # Retrain if needed (uses already-computed feat which includes all 6 features)
             if engine.needs_retrain():
                 engine.fit(feat.values[-engine.training_window:])
                 engine.reset_retrain_counter()
