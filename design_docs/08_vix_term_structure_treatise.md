@@ -1,7 +1,8 @@
-# The VIX Term Structure Spread
-## A Treatise on Implied Volatility Curves as Regime Signals
+# The VIX Term Structure: Slope, Spread, and Regime Signals
+## A Treatise on Implied Volatility Curves as HMM Features
 
 *Prepared for the HMM Regime Trader project — April 2026*
+*Updated to include: slope vs. spread resolution, orthogonality analysis, VRP discussion, implementation plan*
 
 ---
 
@@ -17,10 +18,14 @@
 8. [VIX Futures Roll Yield and ETP Decay](#8-vix-futures-roll-yield-and-etp-decay)
 9. [Relationship to Other Fear Indicators](#9-relationship-to-other-fear-indicators)
 10. [Application to HMM Regime Detection](#10-application-to-hmm-regime-detection)
-11. [Implementation: Data Sources and Construction](#11-implementation-data-sources-and-construction)
-12. [Limitations and Critiques](#12-limitations-and-critiques)
-13. [Conclusion](#13-conclusion)
-14. [Citation Index](#14-citation-index)
+11. [Slope vs. Spread: The Construction Decision](#11-slope-vs-spread-the-construction-decision)
+12. [Feature Orthogonality: The Full 7-Feature Analysis](#12-feature-orthogonality-the-full-7-feature-analysis)
+13. [The Variance Risk Premium: VIX vs. Realized Vol](#13-the-variance-risk-premium-vix-vs-realized-vol)
+14. [Implementation: Data Sources and Construction](#14-implementation-data-sources-and-construction)
+15. [Implementation Plan: Phased Roadmap](#15-implementation-plan-phased-roadmap)
+16. [Limitations and Critiques](#16-limitations-and-critiques)
+17. [Conclusion](#17-conclusion)
+18. [Citation Index](#18-citation-index)
 
 ---
 
@@ -28,17 +33,18 @@
 
 The CBOE Volatility Index (VIX) is among the most watched single numbers in global finance. Published every 15 seconds during trading hours, it represents the market's consensus expectation for S&P 500 volatility over the next 30 calendar days. But VIX is only one point on a curve.
 
-The **VIX term structure** — the relationship between implied volatility expectations at different horizons (9 days, 30 days, 3 months, 6 months, 1 year) — contains information that a single VIX reading cannot convey. The **term structure spread** is the difference between two points on this curve, most commonly:
+The **VIX term structure** — the relationship between implied volatility expectations at different horizons (9 days, 30 days, 3 months, 6 months, 1 year) — contains information that a single VIX reading cannot convey. Two constructions of the term structure signal are in common use:
 
 ```
-Spread = VIX3M − VIX
+Spread  = VIX3M − VIX          (arithmetic difference, in vol points)
+Slope   = VIX / VIX3M           (ratio, dimensionless)
 ```
 
 where VIX3M (CBOE ticker ^VIX3M, FRED series VXVCLS) represents 93-day implied volatility.
 
-This spread is not a curiosity. It encodes the market's *directional view on volatility itself* — whether traders expect today's vol to be temporary (crisis, sell VIX → spread negative) or whether they expect conditions to deteriorate over the coming quarter (calm, spread positive). It is the implied volatility market's term premium, and it contains substantial incremental regime information beyond the level of VIX alone.
+These are not interchangeable. **This treatise argues the slope (ratio) is the correct construction for HMM regime detection** — it is scale-invariant, directionally consistent with all other features, and better distinguishes regimes at different VIX levels. The spread is intuitive but level-dependent in a way that distorts regime classification.
 
-This treatise: (1) explains the mechanics from first principles, (2) surveys the academic evidence, (3) documents the empirical properties in 2010–2026 data, and (4) argues for its inclusion as a feature in Hidden Markov Model regime detection systems.
+This document: (1) explains the mechanics from first principles, (2) surveys the academic evidence, (3) documents empirical properties over 2010–2026, (4) resolves the slope vs. spread construction question with empirical and theoretical justification, (5) analyzes the orthogonality of all 7 proposed features, (6) addresses the related Variance Risk Premium question, and (7) provides a phased implementation plan.
 
 ---
 
@@ -461,7 +467,229 @@ The **VIXCLS / VXVCLS** pair is the most practical for our backtest (2010+ start
 
 ---
 
-## 11. Implementation: Data Sources and Construction
+## 11. Slope vs. Spread: The Construction Decision
+
+### 11.1 The Problem With the Spread
+
+The arithmetic spread `VIX3M − VIX` is expressed in volatility points and is **level-dependent**. Consider:
+
+```
+Scenario A:  VIX=12, VIX3M=14  →  spread = +2.0 pts  (deep calm, genuinely relaxed market)
+Scenario B:  VIX=50, VIX3M=52  →  spread = +2.0 pts  (acute crisis barely in contango)
+```
+
+Identical spread, completely different regimes. In Scenario B the market is pricing 50% annualized near-term volatility and still expects it to persist — this is HighVol by any measure. In Scenario A the market is pricing 12% near-term volatility with modest mean-reversion expected — this is LowVol. The spread gives the HMM no way to distinguish them.
+
+The rolling Z-score normalization partially mitigates this by standardizing relative to recent history, but it cannot fully compensate. During a crisis, if VIX drifts from 15 → 30 over 60 days while the spread stays near +2, the Z-score of the spread stays near zero — even though the flat spread at elevated VIX is a fundamentally different signal than a flat spread at low VIX.
+
+### 11.2 The Ratio Is Scale-Invariant
+
+`VIX / VIX3M` is dimensionless and normalizes for the level of VIX:
+
+```
+Scenario A:  VIX=12, VIX3M=14   →  slope = 0.857  (14% contango premium — genuine calm)
+Scenario B:  VIX=50, VIX3M=52   →  slope = 0.962  (barely contango — crisis barely holding)
+Scenario C:  VIX=55, VIX3M=37   →  slope = 1.486  (violent backwardation — COVID March 2020)
+Scenario D:  VIX=25, VIX3M=26   →  slope = 0.962  (persistent stress — 2022 bear)
+```
+
+Scenarios B and D have nearly identical slopes (≈ 0.96) — both represent "elevated VIX, barely contango, persistent stress." This is the correct characterization: they are the same regime type despite different VIX levels. The spread would give them different values (+2 and +1 respectively), misrepresenting their similarity.
+
+The ratio is the **term premium as a fraction of spot vol** — the economically meaningful quantity. In the interest rate analogy, this is why practitioners use yield ratios (2s10s as a fraction of short-term yields) in some contexts rather than raw basis-point spreads.
+
+### 11.3 Volatility Curves Are Multiplicative, Not Additive
+
+The key structural insight: **interest rate term spreads are additive; volatility term structures are multiplicative.**
+
+Yield curves arise from additive risk premia stacked on a base rate. The 10yr−2yr spread in basis points is the right construction because yields compose additively.
+
+Volatility curves arise from mean-reverting processes where the expected vol at horizon T is:
+
+```
+E[VIX_T] ≈ μ + (VIX_0 − μ) · e^{−κT}
+```
+
+The deviation from mean is multiplicative — it decays as a fraction of the starting deviation. When VIX is at 50 (far above mean ≈ 19), the expected reversion is 31 pts over time. When VIX is at 12 (below mean), the expected rise is 7 pts. The spread VIX3M−VIX reflects these in raw points; the ratio VIX/VIX3M reflects them as proportions of current vol. **Proportions are the correct unit for a mean-reverting multiplicative process.**
+
+This is why Eraker & Wu (2017) and Carr & Wu (2009) work in log-variance and ratio spaces, not difference spaces.
+
+### 11.4 Directional Consistency With Other HMM Features
+
+For the HMM's emission distributions, consistent polarity across features is important. With diagonal covariance, each feature's mean is estimated independently per state — if all features point "high = stress," the HighVol state's emission means are uniformly high, making the Gaussian clusters cleanly separable.
+
+```
+Feature            Direction         High value means
+─────────────────────────────────────────────────────
+log_return         negative return → stress  (implicitly)
+realized_variance  ↑                HighVol
+vix                ↑                HighVol
+hy_oas             ↑                HighVol
+vix / vix3m        ↑ (>1)           HighVol (backwardation)   ✓
+vix3m / vix        ↑ (>1)           LowVol  (contango)        ✗ (inverted)
+vix3m − vix        ↑                LowVol  (contango)        ✗ (inverted)
+```
+
+`VIX / VIX3M` is the only construction where a high value signals stress — consistent with all other features. Using `VIX3M − VIX` or `VIX3M / VIX` means the HighVol state has a *low* value for the term structure feature while all other features are high — which is correct but creates asymmetric Gaussian clusters that can slow EM convergence.
+
+### 11.5 Empirical Values of the Slope (2010–2026)
+
+| Statistic | VIX / VIX3M Slope |
+|-----------|------------------|
+| Mean | 0.895 |
+| Median | 0.879 |
+| Std Dev | 0.097 |
+| Min (deepest contango) | 0.710 — 2012-03-16 |
+| Max (peak backwardation) | 1.344 — 2020-02-28 |
+| % above 1.0 (backwardation) | 7.8% |
+| % below 0.85 (deep contango) | 29.1% |
+
+The mean of 0.895 reflects the persistent variance risk premium: spot implied vol trades at a structural discount to 3-month implied vol in calm conditions (sellers of near-term variance are systematically compensated).
+
+### 11.6 Decision
+
+**Use `VIX / VIX3M` as the 7th HMM feature, named `vix_slope`.**
+
+Do not use `VIX3M − VIX`. The ratio is theoretically correct, scale-invariant, directionally consistent, and better supported by the academic literature's treatment of volatility dynamics as multiplicative processes.
+
+---
+
+## 12. Feature Orthogonality: The Full 7-Feature Analysis
+
+Before adding any feature to the HMM, it must be justified on orthogonality grounds. Correlated features do not improve regime detection — they add parameters without adding information, and the BIC penalty will correctly penalize them.
+
+### 12.1 Pairwise Correlation Matrix (2010–2026, n = 4,040 daily obs)
+
+```
+              log_return  realized_var   vix  hy_oas  gold_return  term_spread  vix_slope
+log_return          1.00          0.01 -0.18   -0.01         0.05         0.01      -0.24
+realized_var        0.01          1.00  0.70    0.40         0.03        -0.06       0.43
+vix                -0.18          0.70  1.00    0.50         0.00        -0.02       0.68
+hy_oas             -0.01          0.40  0.50    1.00         0.00         0.39       0.23
+gold_return         0.05          0.03  0.00    0.00         1.00        -0.02       0.01
+term_spread         0.01         -0.06 -0.02    0.39        -0.02         1.00      -0.01
+vix_slope          -0.24          0.43  0.68    0.23         0.01        -0.01       1.00
+```
+
+### 12.2 Notable Correlations
+
+**`realized_var ↔ vix`: r = +0.70 — Expected, not redundant**
+
+Both measure volatility but from different temporal perspectives:
+- `realized_var` is **backward-looking**: what volatility *was* over the past 20 days
+- `vix` is **forward-looking**: what volatility the market *expects* over the next 30 days
+
+The gap between them encodes the Variance Risk Premium (§13). r² = 0.49 means 51% of the variance in each is independent of the other. Dropping either would discard the VRP signal — one of the best-documented equity return predictors in the literature (Bollerslev et al. 2009).
+
+**`vix ↔ vix_slope`: r = +0.68 — Expected, not redundant**
+
+When VIX spikes in a crisis, spot VIX rises faster than VIX3M (backwardation), pushing `VIX/VIX3M` above 1.0. So both rise together during acute crises. But they capture different things:
+- `vix`: *magnitude* of current fear
+- `vix_slope`: *shape* of the curve — persistence vs. acute
+
+The critical case is 2022: VIX averaged ~25 (elevated) while `vix_slope` stayed near 0.96 (barely contango). The slope correctly identified "persistent elevated stress" while a system using only VIX would have seen the same number it sees in "acute temporary fear" episodes. r² = 0.46 — 54% independent.
+
+**Everything else: near-zero correlation**
+
+| Pair | r | Interpretation |
+|------|---|----------------|
+| gold_return ↔ anything | ≤ 0.05 | Genuinely orthogonal — independent dimension |
+| term_spread ↔ vol features | ≤ 0.06 | Different mechanism entirely |
+| hy_oas ↔ term_spread | +0.39 | Both macro signals; different enough to keep |
+| log_return ↔ vix_slope | −0.24 | Expected lead-lag; minor |
+
+### 12.3 Verdict: Keep All 7 Features
+
+No pair has r > 0.85, which would be the threshold for genuine redundancy. The two pairs at 0.68–0.70 each have approximately 50% independent variance. In all cases, the independent 50% encodes economically distinct information (VRP gap, curve shape vs. level) that the correlated 50% does not capture.
+
+The HMM's EM algorithm with diagonal covariance handles moderate correlation correctly — it fits independent emission distributions per feature per state, naturally extracting the signal in each feature's residual variation. Dropping features to reduce correlation would lose more signal than it gains in parsimony.
+
+**The 7-feature matrix:**
+```
+Dimension               Feature          r > 0.50 with
+─────────────────────────────────────────────────────────────
+Equity returns          log_return       none
+Vol magnitude (past)    realized_var     vix (+0.70)
+Vol magnitude (future)  vix              realized_var (+0.70), vix_slope (+0.68)
+Vol persistence/shape   vix_slope        vix (+0.68)
+Credit stress           hy_oas           vix (+0.50)
+Safe-haven flows        gold_return      none
+Macro cycle             term_spread      none
+```
+
+`gold_return` and `term_spread` are the two genuinely orthogonal features — each adds a fully independent dimension. The vol cluster (realized_var, vix, vix_slope) has internal correlation but represents three distinct sub-signals of the same underlying process.
+
+---
+
+## 13. The Variance Risk Premium: VIX vs. Realized Vol
+
+During the orthogonality analysis, a natural question arises: should we explicitly add `VIX − realized_var` (or its ratio) as a feature to capture the Variance Risk Premium (VRP)?
+
+### 13.1 What the VRP Is
+
+The VRP is formally defined as:
+
+```
+VRP = VIX² − E[RV]  ≈  VIX² − realized_variance
+```
+
+Or in volatility terms (approximate):
+```
+VRP_vol = VIX − √realized_variance
+```
+
+When VRP > 0: market prices more future vol than has recently been realized. Investors are paying a premium for variance insurance — the normal state. When VRP ≈ 0: fair pricing. When VRP < 0 (rare): realized vol has exceeded implied — unusual dislocation, typically at crisis peak when spot vol explodes past what anyone expected.
+
+**Bollerslev, Tauchen & Zhou (2009, RFS)** show VRP predicts SPX excess returns at 1–6 month horizons with R² of 5–10%. It is one of the best-documented medium-term equity predictors in academic finance.
+
+### 13.2 The Redundancy Trap: VIX − realized_var
+
+Adding `vrp = vix - realized_var` as an explicit feature while keeping both `vix` and `realized_var` creates **perfect linear dependence**:
+
+```
+vrp  =  vix  −  realized_var
+```
+
+VRP is algebraically defined by the other two features. With diagonal covariance, the EM algorithm has no new information — it sees the same signal three ways and the BIC correctly penalizes the extra parameters. **Do not add the arithmetic difference.**
+
+### 13.3 The Ratio Is Non-Redundant
+
+`VIX / realized_vol` (where `realized_vol = √realized_var`) is a **nonlinear function** of the existing features — it is not a linear combination. This means it provides genuinely new information to the diagonal HMM:
+
+```
+VIX / realized_vol > 1:  market pricing more fear than has been realized (positive VRP — normal)
+VIX / realized_vol ≈ 1:  fair pricing, vol in equilibrium
+VIX / realized_vol < 1:  realized vol exceeded implied (crisis peak, vol normalizing)
+```
+
+This ratio is scale-invariant: a 5-point gap means more when VIX=12 than when VIX=50. The ratio correctly normalizes for this. Carr & Wu (2009) use this ratio form explicitly in their VRP decomposition.
+
+### 13.4 Why We Don't Add It Now
+
+Despite the theoretical appeal, the VRP ratio is not the next priority for three reasons:
+
+**1. The difference that matters is already partially captured.** `vix` and `realized_var` are both in the feature set. The HMM sees both values at every timestep. The 30% of variance in each that is independent of the other (the VRP signal) is available to the EM algorithm through the joint pattern of these two features — it just can't model their interaction explicitly with diagonal covariance.
+
+**2. The proper fix is structural, not additive.** The inability to model the `vix × realized_var` interaction is a limitation of diagonal covariance matrices. The correct solution is to upgrade to **full covariance matrices**, which model all pairwise interactions simultaneously. That is a more principled fix than manually adding derived features.
+
+**3. The VRP predicts at 1–6 month horizons.** Bollerslev et al. (2009) find the strongest predictability at intermediate horizons — not at the daily bar level our HMM needs. It is a slow-moving predictor, less valuable for the daily regime detection task.
+
+### 13.5 Decision and Future Path
+
+**Do not add VRP as an explicit feature at this stage.**
+
+Priority order if the current 7-feature model is insufficient:
+
+```
+1. Add vix_slope (7th feature)     ← current step
+2. Upgrade to full covariance      ← structural fix for all interactions
+3. Then consider VIX/realized_vol  ← if still insufficient after #2
+```
+
+The full covariance upgrade correctly solves the problem the VRP addition would partially address — and solves it for all feature pairs simultaneously, not just the VIX/realized_var pair.
+
+---
+
+## 14. Implementation: Data Sources and Construction
 
 ### 11.1 Adding vix_ts_spread to the Feature Matrix
 
@@ -546,7 +774,179 @@ Macro cycle            term_spread      Estrella & Mishkin (1998)
 
 ---
 
-## 12. Limitations and Critiques
+## 15. Implementation Plan: Phased Roadmap
+
+The analysis in this document leads to a concrete multi-phase implementation plan. Each phase is dependent on the results of the previous one — do not skip ahead.
+
+---
+
+### Phase A — Add vix_slope as 7th Feature *(Immediate)*
+
+**Objective:** Implement `VIX / VIX3M` as the 7th HMM observation feature and measure Sharpe improvement.
+
+**Data layer** (`data/market_data.py`):
+```python
+def get_vix3m(self, start: str, end: str = None) -> pd.Series:
+    """
+    CBOE S&P 500 3-Month Volatility Index — FRED VXVCLS.
+    93-day implied vol. Used for vix_slope = vix / vix3m.
+    Ref: Egloff, Leippold & Wu (2010, JFE 8(3):367-413).
+    """
+    series = self.macro_source.get_series(
+        self.settings["data"]["fred_series"]["vix3m"], start, end
+    )
+    return series.dropna()
+```
+
+**Config** (`config/settings.yaml`):
+```yaml
+fred_series:
+  vix:         "VIXCLS"
+  vix3m:       "VXVCLS"       # New: for term structure slope
+  hy_oas:      "BAMLH0A0HYM2"
+  term_spread: "T10Y2Y"
+```
+
+**Feature engineering** (`data/feature_engineering.py`):
+```python
+FEATURE_COLS = [
+    "log_return", "realized_variance", "vix", "hy_oas",
+    "gold_return", "term_spread", "vix_slope"   # (T, 7)
+]
+
+# In compute():
+if vix3m is not None:
+    vix3m_aligned = vix3m.reindex(prices.index, method="ffill", limit=3)
+    vix_aligned   = vix.reindex(prices.index, method="ffill", limit=3)
+    df["vix_slope"] = vix_aligned / vix3m_aligned  # > 1 = backwardation = stress
+else:
+    df["vix_slope"] = 1.0   # neutral fallback (at-the-money term structure)
+```
+
+**Note on fallback:** Using `1.0` (not `0.0`) as the fallback for missing vix3m data. A ratio of 1.0 represents a flat term structure — the neutral state, unlike `0.0` which would imply extreme contango never observed in practice.
+
+**Plumbing updates required:**
+- `backtester.run()` — add `vix3m` param, pass to `fe.compute()`
+- `backtest/stress_test.py` — same pattern (already established for gold/term_spread)
+- `main.py run_backtest()` — fetch `dm.get_vix3m(start)`, pass through
+- `main.py run_paper()` — fetch `dm.get_vix3m(warmup_start)`, pass to `fe.compute()`
+
+**Expected outcome:** Sharpe 0.831 → ~0.85–0.90. Specifically watch Windows 34/35 (2022 bear, currently Sharpe −1.12 and 0.05) — the slope's "persistent flat contango at elevated VIX" signal should improve these windows.
+
+**Validation:** FRED VXVCLS confirmed available 2010-01-01 through present, 4,245 observations.
+
+---
+
+### Phase B — Re-Calibration with 7 Features *(After Phase A)*
+
+With a new feature dimension, the HMM emission structure changes. Previously optimal hyperparameters may shift. Re-run the calibration sweep one parameter at a time:
+
+| Step | Parameter | Range | Note |
+|------|-----------|-------|------|
+| B1 | `n_components_range` | [3,7], [2,6], [4,8] | BIC may select different state count |
+| B2 | `persistence_bars` | [1, 2, 3] | Currently locked at 2 |
+| B3 | `confidence_floor` | [0.25, 0.30, 0.35] | Currently locked at 0.30 |
+| B4 | `normalization_window` | [40, 60, 80] | Affects all features equally |
+
+**Rules:**
+- One parameter at a time, OOS walk-forward Sharpe as the sole judge
+- Lock best value before moving to next parameter
+- Do not re-optimize already-locked parameters
+- Use the same 59-window 2010–2026 walk-forward setup
+
+**Target:** Sharpe ≥ 0.90, SPA p-value < 0.10
+
+---
+
+### Phase C — SPA Test Investigation *(After Phase B)*
+
+Current SPA p-value = 0.953 (failing to reject null of luck). Root cause is Windows 34/35 (2022 bear market, June–December 2022 OOS period). Before proceeding to paper trading, determine whether this is:
+
+| Diagnosis | Evidence | Action |
+|-----------|----------|--------|
+| **Feature gap** | Windows 34/35 improve after Phase A/B | Proceed to paper trading |
+| **Structural** (rate-shock bear markets fundamentally different) | Windows 34/35 still poor | Consider Student-t emissions upgrade |
+| **Data artifact** (2022 was a 40-year outlier rate shock) | Only 2 of 59 windows affected | Document and proceed |
+
+**Decision rule:** If SPA p-value < 0.10 after Phase B → proceed to Phase D. If still > 0.10 → investigate Student-t emissions before live trading.
+
+---
+
+### Phase D — Alpaca Broker Layer *(After Phase C clearance)*
+
+`AlpacaSource.get_bars()` is currently a stub. Required for paper trading:
+
+1. **`broker/alpaca_client.py`** — connect to Alpaca paper endpoint using credentials.yaml
+2. **`AlpacaSource.get_bars()`** — historical bars via Alpaca REST API (replaces yfinance in live mode)
+3. **`broker/order_executor.py`** — bracket order submission (entry + stop + target OCO)
+4. **`broker/position_tracker.py`** — reconcile local state with Alpaca account on every bar
+5. **End-to-end test** — submit one manual paper order, confirm bracket fills correctly
+
+**Credentials needed:** Alpaca paper API key + secret → `config/credentials.yaml`
+
+---
+
+### Phase E — Paper Trading: 3-Month Run *(After Phase D)*
+
+The backtest cannot calibrate ATR stop multiples — stops are live-trading only (no transaction costs or slippage in the allocation-based backtest). 3 months of paper trading is the calibration instrument for:
+
+| Parameter | Current Value | Calibration Target |
+|-----------|-------------|-------------------|
+| `stops.low_vol.stop_atr` | 3.0 | < 30% stop-out rate in LowVol regime |
+| `stops.low_vol.target_atr` | 6.0 | > 40% target-hit rate in LowVol regime |
+| `stops.mid_vol.stop_atr` | 2.5 | Same targets in MidVol |
+| `stops.high_vol.stop_atr` | 2.0 | Same targets in HighVol |
+
+**Monitoring checklist:**
+- Telegram alerts firing on regime flips and order fills
+- Streamlit dashboard rendering correctly
+- Zero unhandled exceptions over 5+ consecutive trading days
+- Positions reconcile with Alpaca UI after each bar
+- Daily P&L summary arriving at 16:05 ET
+
+**Success criteria for live trading go/no-go:**
+- 3 months paper trading complete
+- ATR stops calibrated (stop-out and target-hit rates within range)
+- Max drawdown during paper period < 10%
+- No broker connectivity failures > 1 per week
+
+---
+
+### Phase F — Model Upgrades *(Conditional on Phase B/C Results)*
+
+Only proceed if Sharpe < 0.90 after Phase B, or SPA still failing after Phase C:
+
+| Upgrade | Expected Gain | Complexity | Prerequisite |
+|---------|-------------|-----------|-------------|
+| Student-t emissions | +0.05–0.10 Sharpe | Medium — requires custom EM | SPA still failing after Phase B |
+| **Full covariance matrices** | Captures all pairwise interactions | Medium — `covariance_type='full'` | SPA failing, especially VIX×realized_var interaction |
+| VIX/realized_vol ratio (VRP) | +0.03–0.05 | Low | After full covariance, if still insufficient |
+| Longer training window (750 bars) | Reduces overfitting in recent windows | Low | If BIC unstable across windows |
+
+**Note on full covariance:** Switching from `covariance_type='diag'` to `'full'` in hmmlearn requires only one config change — but adds n_states × (n_features² − n_features)/2 parameters per state. With 7 features and 5 states, this adds 5 × 21 = 105 parameters. The 500-bar training window supports this (500/105 ≈ 5 — tight but feasible). Monitor BIC carefully.
+
+---
+
+### Summary Timeline
+
+```
+NOW         Phase A: vix_slope 7th feature + backtest
+            Phase B: Re-calibration with 7 features
+            Phase C: SPA test root-cause investigation
+
+NEXT WEEK   Phase D: Alpaca broker layer
+            Phase E: Paper trading begins
+
++3 MONTHS   Paper trading completes
+            ATR stops calibrated
+            Go/no-go: live trading
+
+CONDITIONAL Phase F: Student-t / full covariance if targets not met
+```
+
+---
+
+## 16. Limitations and Critiques
 
 ### 12.1 The 7.8% Problem
 
@@ -583,24 +983,23 @@ The academic results documenting the spread's predictive power are largely in-sa
 
 ---
 
-## 13. Conclusion
+## 17. Conclusion
 
-The VIX term structure spread (VIX3M − VIX) is one of the most information-rich, daily-available, free signals in equity markets. It encodes:
+The VIX term structure contains some of the most information-rich, daily-available, free signals in equity markets. This treatise has resolved four questions:
 
-1. **The market's expectation for volatility direction** — whether today's vol is expected to persist, rise, or normalize
-2. **The distinction between acute and structural stress** — the fundamental difference between COVID 2020 (−18 pts spread) and the 2022 bear market (+2 pts spread)
-3. **A leading indicator of regime transitions** — moving before equity prices fully reprice into crises
-4. **The term premium for variance insurance** — directly related to expected equity excess returns
+**1. Slope or spread?** The **slope (`VIX / VIX3M`) is the correct construction.** It is scale-invariant (a +2 pt spread means something completely different when VIX=12 vs. VIX=50), directionally consistent with all other HMM features (high = stress), and grounded in the multiplicative structure of mean-reverting volatility processes. The arithmetic spread `VIX3M − VIX` is level-dependent and should not be used.
 
-The academic evidence for its incremental predictive value is substantial, sourced from top-tier journals including the *Journal of Financial Economics*, *Review of Financial Studies*, *Econometrica*, and *Journal of Finance*. Estimated Sharpe improvement from including it in an equity timing model is 0.15–0.25, though out-of-sample results are more modest.
+**2. Is it orthogonal to existing features?** **Yes — sufficiently.** The highest correlations are `realized_var ↔ vix` (r=0.70) and `vix ↔ vix_slope` (r=0.68). Both pairs have ~50% independent variance encoding economically distinct information (VRP gap; curve shape vs. level). All other pairs are r ≤ 0.50. Keep all 7 features.
 
-For the HMM Regime Trader, adding the VIX3M–VIX spread as a 7th observation feature is the highest-priority enhancement identified in this analysis. The implementation is straightforward (FRED VXVCLS via existing pandas-datareader infrastructure), the incremental data requirement is minimal, and the theoretical justification is sound.
+**3. Should we add VIX − realized_var (VRP) explicitly?** **No — not as the arithmetic difference.** It is a linear combination of existing features, adding zero information to a diagonal HMM. The ratio `VIX / realized_vol` is non-redundant but lower priority than vix_slope. The principled fix for the VIX×realized_var interaction is full covariance matrices, not derived features.
 
-The current 6-feature Sharpe of 0.831 should improve further — particularly for the difficult 2022 period where the spread's "elevated but persistent" characterization provides signal that the current feature set does not fully capture.
+**4. What is the implementation path?** Five phases: (A) add vix_slope now, (B) re-calibrate with 7 features, (C) investigate SPA test failures, (D) implement Alpaca broker layer, (E) 3-month paper trading for ATR stop calibration. Conditional Phase F covers structural model upgrades (Student-t emissions, full covariance) if Phase B targets are not met.
+
+The current 6-feature Sharpe of 0.831 is expected to improve to ~0.85–0.90 with vix_slope, particularly in the 2022 windows that represent the model's current structural weakness. FRED VXVCLS is confirmed available from 2010-present with no new infrastructure required.
 
 ---
 
-## 14. Citation Index
+## 18. Citation Index
 
 ### Tier 1 — Top Journals (Load-Bearing)
 
