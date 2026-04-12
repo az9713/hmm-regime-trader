@@ -116,6 +116,42 @@ class TradeLogger:
         self._write(self._backtest_log, entry)
         self._logger.info(f"Backtest complete. Log: {self._backtest_log}")
 
+    def update_dashboard_state(
+        self,
+        regime: str,
+        confidence: float,
+        allocation: float,
+        portfolio_value: float,
+        daily_pnl: float,
+        daily_pnl_pct: float,
+        positions: list,
+        equity_history: list,
+        regime_history: list,
+        timestamps: list,
+        session_start: str,
+    ):
+        """
+        Write latest snapshot to logs/dashboard_state.json.
+        Streamlit dashboard reads this file every 10 seconds.
+        """
+        state = {
+            "regime": regime,
+            "confidence": round(confidence, 4),
+            "allocation": round(allocation, 4),
+            "portfolio_value": round(portfolio_value, 2),
+            "daily_pnl": round(daily_pnl, 2),
+            "daily_pnl_pct": round(daily_pnl_pct, 6),
+            "positions": positions,
+            "equity_history": [round(v, 2) for v in equity_history[-500:]],
+            "regime_history": regime_history[-500:],
+            "timestamps": [str(t) for t in timestamps[-500:]],
+            "session_start": session_start,
+            "last_updated": datetime.now().strftime("%H:%M:%S ET"),
+        }
+        path = self.log_dir / "dashboard_state.json"
+        with open(path, "w") as f:
+            json.dump(state, f)
+
     def _write(self, path: Path, entry: dict):
         with open(path, "a") as f:
             f.write(json.dumps(entry) + "\n")

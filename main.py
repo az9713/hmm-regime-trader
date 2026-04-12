@@ -39,6 +39,13 @@ def load_settings(config_path: str = "config/settings.yaml") -> dict:
         return yaml.safe_load(f)
 
 
+def load_credentials(creds_path: str = "config/credentials.yaml") -> dict:
+    if not Path(creds_path).exists():
+        return {}
+    with open(creds_path) as f:
+        return yaml.safe_load(f) or {}
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Regime Trader — HMM-based volatility regime trading bot")
     group = parser.add_mutually_exclusive_group(required=True)
@@ -104,7 +111,7 @@ def run_backtest(settings: dict, start_date: str = None):
         print(f"\nStress [{name}]: {status} | HighVol={sr.high_vol_pct:.0%} | AvgAlloc={sr.avg_allocation:.2f}")
 
 
-def run_paper(settings: dict):
+def run_paper(settings: dict, credentials: dict = None):
     """Live paper trading loop."""
     from broker.alpaca_client import AlpacaClient
     from broker.order_executor import OrderExecutor
@@ -118,7 +125,15 @@ def run_paper(settings: dict):
 
     logger = logging.getLogger("main")
     log = TradeLogger()
-    alerts = AlertManager(settings)
+    alerts = AlertManager(settings, credentials or {})
+
+    # Dashboard state tracking
+    _equity_history = []
+    _regime_history = []
+    _timestamps = []
+    _prev_regime = None
+    _session_start = datetime.now().strftime("%H:%M ET")
+    _session_open_value = None
 
     logger.info("Starting paper trading session...")
 
@@ -209,8 +224,57 @@ def run_paper(settings: dict):
                 tracker.register_signal(symbol, signal.stop_price, signal.target_price, signal.regime)
                 order_result = executor.submit(signal)
                 log.log_signal(signal, regime_state)
-                if not order_result.submitted:
+                if order_result.submitted:
+                    alerts.order_filled(
+                        symbol=symbol,
+                        side="buy",
+                        qty=order_result.qty,
+                        fill_price=order_result.entry,
+                        stop=order_result.stop,
+                        target=order_result.target,
+                        regime=regime_state.label,
+                    )
+                else:
                     alerts.broker_error(symbol, order_result.message)
+
+            # ── Regime flip detection ──────────────────────────────
+            nonlocal _prev_regime
+            if _prev_regime is not None and regime_state.label != _prev_regime:
+                alerts.regime_flip(
+                    symbol=symbol,
+                    prev_regime=_prev_regime,
+                    new_regime=regime_state.label,
+                    confidence=regime_state.confidence,
+                    allocation=signal.allocation if hasattr(signal, "allocation") else 0.0,
+                )
+            _prev_regime = regime_state.label
+
+            # ── Dashboard state update ─────────────────────────────
+            nonlocal _session_open_value
+            pv = account["portfolio_value"]
+            if _session_open_value is None:
+                _session_open_value = pv
+            _equity_history.append(pv)
+            _regime_history.append(regime_state.label)
+            _timestamps.append(datetime.now().isoformat())
+
+            open_pos = [
+                {"symbol": p, "regime": tracker._regime_at_entry.get(p, "—")}
+                for p in (positions.index.tolist() if hasattr(positions, "index") else [])
+            ]
+            log.update_dashboard_state(
+                regime=regime_state.label,
+                confidence=regime_state.confidence,
+                allocation=signal.allocation if hasattr(signal, "allocation") else 0.0,
+                portfolio_value=pv,
+                daily_pnl=pv - _session_open_value,
+                daily_pnl_pct=daily_pnl_pct,
+                positions=open_pos,
+                equity_history=_equity_history,
+                regime_history=_regime_history,
+                timestamps=_timestamps,
+                session_start=_session_start,
+            )
 
         except Exception as e:
             logger.exception(f"Bar handler error for {symbol}: {e}")
@@ -240,6 +304,7 @@ def main():
     load_dotenv()
     args = parse_args()
     settings = load_settings(args.config)
+    credentials = load_credentials()
 
     log_cfg = settings.get("monitoring", {})
     setup_logging(
@@ -259,11 +324,11 @@ def main():
         logger.warning("LIVE trading mode started by user confirmation")
         # Live uses same paper loop but with settings["broker"]["mode"] = "live"
         settings["broker"]["mode"] = "live"
-        run_paper(settings)
+        run_paper(settings, credentials)
 
     elif args.paper:
         settings["broker"]["mode"] = "paper"
-        run_paper(settings)
+        run_paper(settings, credentials)
 
     elif args.backtest:
         run_backtest(settings, start_date=args.start)

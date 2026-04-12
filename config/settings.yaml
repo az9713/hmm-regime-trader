@@ -138,4 +138,16 @@ monitoring:
   log_level: "INFO"
   log_file: "logs/regime_trader.log"
   alert_email: null                 # Set to enable email alerts
-  dashboard_port: 8050
+  dashboard_port: 8501              # Streamlit default port
+
+# ── Telegram Alerts ─────────────────────────────────────────
+# Events that trigger a push notification to your phone:
+#   - Regime flip (e.g. LowVol → HighVol)
+#   - Circuit breaker trip
+#   - Bracket order filled
+#   - Broker error
+#   - End-of-day P&L summary
+# Credentials live in credentials.yaml (never commit that file).
+telegram:
+  enabled: true
+  daily_summary_time: "16:05"       # ET — 5 min after market close
