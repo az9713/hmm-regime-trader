@@ -65,12 +65,15 @@ class StressTester:
         vix: pd.Series,
         hy_oas: pd.Series,
         primary_symbol: str = "SPY",
+        gold: pd.Series = None,
+        term_spread: pd.Series = None,
     ) -> dict[str, StressPeriodResult]:
         """Run stress tests for all defined periods."""
         results = {}
         for period_name, (start, end) in STRESS_PERIODS.items():
             result = self.run_single(
-                period_name, start, end, prices, vix, hy_oas, primary_symbol
+                period_name, start, end, prices, vix, hy_oas, primary_symbol,
+                gold=gold, term_spread=term_spread,
             )
             results[period_name] = result
             status = "PASS" if result.detection_pass else "FAIL"
@@ -89,6 +92,8 @@ class StressTester:
         vix: pd.Series,
         hy_oas: pd.Series,
         primary_symbol: str = "SPY",
+        gold: pd.Series = None,
+        term_spread: pd.Series = None,
     ) -> StressPeriodResult:
         """
         Train HMM on pre-stress data, then run forward algorithm through stress period.
@@ -96,9 +101,9 @@ class StressTester:
         """
         spy_prices = prices[primary_symbol]
 
-        # Build full feature matrix
+        # Build full feature matrix (6 features including gold + term_spread if provided)
         fe = FeatureEngineer(self.settings)
-        features = fe.compute(spy_prices, vix, hy_oas)
+        features = fe.compute(spy_prices, vix, hy_oas, gold=gold, term_spread=term_spread)
 
         # IS: PRETRAIN_YEARS before stress start
         stress_start = pd.Timestamp(start)

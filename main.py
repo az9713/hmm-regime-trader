@@ -108,7 +108,7 @@ def run_backtest(settings: dict, start_date: str = None):
     # Stress tests
     logger.info("Running stress period tests...")
     stress = StressTester(settings)
-    stress_results = stress.run_all(prices, vix, hy_oas)
+    stress_results = stress.run_all(prices, vix, hy_oas, gold=gold, term_spread=term_spread)
     for name, sr in stress_results.items():
         status = "PASS ✓" if sr.detection_pass else "FAIL ✗"
         print(f"\nStress [{name}]: {status} | HighVol={sr.high_vol_pct:.0%} | AvgAlloc={sr.avg_allocation:.2f}")
