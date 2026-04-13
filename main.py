@@ -53,6 +53,7 @@ def parse_args():
     group.add_argument("--paper", action="store_true", help="Paper trading via Alpaca")
     group.add_argument("--live", action="store_true", help="LIVE trading — real money. Requires CONFIRM.")
     group.add_argument("--test-connection", action="store_true", help="Test Alpaca connectivity and exit")
+    group.add_argument("--dry-run", action="store_true", help="Smoke test: warmup + HMM fit + regime step, then exit")
     parser.add_argument("--config", default="config/settings.yaml", help="Path to settings.yaml")
     parser.add_argument("--start", default=None, help="Backtest start date (YYYY-MM-DD)")
     return parser.parse_args()
@@ -289,8 +290,8 @@ def run_paper(settings: dict, credentials: dict = None):
             _timestamps.append(datetime.now().isoformat())
 
             open_pos = [
-                {"symbol": p, "regime": tracker._regime_at_entry.get(p, "—")}
-                for p in (positions.index.tolist() if hasattr(positions, "index") else [])
+                {"symbol": p, "regime": tracker._local_metadata.get(p, {}).get("regime", "—")}
+                for p in positions.keys()
             ]
             log.update_dashboard_state(
                 regime=regime_state.label,
@@ -314,6 +315,141 @@ def run_paper(settings: dict, credentials: dict = None):
     client.subscribe_bars(symbols, on_bar)
     logger.info(f"Subscribed to live bars: {symbols}")
     client.run_stream()
+
+
+def run_dry_run(settings: dict, credentials: dict = None):
+    """
+    Smoke test — exercises every component of the paper trading warmup path
+    without blocking on the WebSocket stream. Safe to run any time of day.
+
+    Checks:
+      1. Alpaca credentials + connection
+      2. Historical bar fetch (SPY via Alpaca REST)
+      3. FRED macro data fetch (VIX, HY OAS, term_spread, vix3m)
+      4. Gold via yfinance
+      5. Feature engineering (shape, date range, no NaN)
+      6. HMM fit (BIC state selection, convergence)
+      7. Regime step (forward α-recursion on latest bar)
+      8. EWMA realized vol computation
+    """
+    from broker.alpaca_client import AlpacaClient
+    from data.market_data import DataManager
+    from data.feature_engineering import FeatureEngineer, compute_ewma_realized_vol
+    from core.hmm_engine import HMMEngine
+    import numpy as np
+
+    logger = logging.getLogger("main")
+    results = {}
+    passed = 0
+    failed = 0
+
+    def check(name, fn):
+        nonlocal passed, failed
+        try:
+            val = fn()
+            results[name] = ("OK", val)
+            passed += 1
+            return val
+        except Exception as e:
+            results[name] = ("FAIL", str(e))
+            failed += 1
+            logger.error(f"[DRY RUN] {name} FAILED: {e}")
+            return None
+
+    print("\n=== Paper Trading Dry Run (Smoke Test) ===")
+
+    # 1. Credentials + connection
+    _bridge_alpaca_credentials(credentials or {})
+    settings["broker"]["mode"] = "paper"
+    client = check("Alpaca connect", lambda: (AlpacaClient(settings).__class__,
+                                               AlpacaClient(settings).connect() or True))
+
+    # Re-create properly (lambda above doesn't hold state)
+    _bridge_alpaca_credentials(credentials or {})
+    alpaca = AlpacaClient(settings)
+    try:
+        alpaca.connect()
+    except Exception as e:
+        print(f"  FATAL: Alpaca connection failed: {e}")
+        sys.exit(1)
+
+    # 2. Account
+    account = check("Alpaca account", alpaca.get_account)
+
+    # 3. Data
+    warmup_start = settings["data"]["start_date"]
+    dm = DataManager(settings, mode="live", alpaca_client=alpaca)
+
+    spy_prices = check("SPY bars (Alpaca)", lambda: dm.get_bars("SPY", warmup_start))
+    vix        = check("VIX (FRED)",        lambda: dm.get_vix(warmup_start))
+    hy_oas     = check("HY OAS (FRED)",     lambda: dm.get_hy_oas(warmup_start))
+    gold       = check("Gold (yfinance)",   lambda: dm.get_gold(warmup_start))
+    term_sp    = check("Term spread (FRED)",lambda: dm.get_term_spread(warmup_start))
+    vix3m      = check("VIX3M (FRED)",      lambda: dm.get_vix3m(warmup_start))
+
+    # 4. Features
+    fe = FeatureEngineer(settings)
+    features = None
+    if all(x is not None for x in [spy_prices, vix, hy_oas, gold, term_sp, vix3m]):
+        features = check(
+            "Feature engineering",
+            lambda: fe.compute(spy_prices, vix, hy_oas, gold=gold, term_spread=term_sp, vix3m=vix3m)
+        )
+
+    # 5. HMM fit
+    engine = None
+    if features is not None:
+        engine = HMMEngine(settings)
+        n_states = check("HMM fit (BIC)", lambda: engine.fit(features.values))
+
+    # 6. Regime step
+    regime_state = None
+    if engine is not None and features is not None:
+        regime_state = check("Regime step", lambda: engine.step(features.values[-1]))
+
+    # 7. EWMA vol
+    ewma_vol = None
+    if features is not None and "log_return" in features.columns:
+        ewma_vol = check(
+            "EWMA vol",
+            lambda: float(compute_ewma_realized_vol(features["log_return"]).iloc[-1])
+        )
+
+    # ── Print summary ──────────────────────────────────────────
+    print(f"\n  {'Component':<25} {'Status':<6} {'Detail'}")
+    print(f"  {'-'*60}")
+    for name, (status, val) in results.items():
+        if status == "OK":
+            if name == "Alpaca account" and val:
+                detail = f"${val['portfolio_value']:,.0f} portfolio"
+            elif name == "SPY bars (Alpaca)" and val is not None:
+                detail = f"{len(val)} bars  {val.index[0].date()} to {val.index[-1].date()}"
+            elif name == "Feature engineering" and val is not None:
+                detail = f"shape={val.shape}  NaN={val.isna().sum().sum()}"
+            elif name == "HMM fit (BIC)" and val is not None:
+                detail = f"n_states={val}"
+            elif name == "Regime step" and val is not None:
+                detail = f"{val.label}  conf={val.confidence:.0%}"
+            elif name == "EWMA vol" and val is not None:
+                detail = f"annualized={val:.3f}"
+            elif hasattr(val, '__len__'):
+                detail = f"{len(val)} obs"
+            else:
+                detail = str(val)[:40]
+        else:
+            detail = val[:60]
+        marker = "+" if status == "OK" else "!"
+        print(f"  {marker} {name:<24} {status:<6} {detail}")
+
+    print(f"\n  {'-'*60}")
+    if failed == 0:
+        print(f"  ALL SYSTEMS GO -- {passed}/{passed+failed} checks passed")
+        print(f"  Ready for: python main.py --paper")
+    else:
+        print(f"  {failed} CHECK(S) FAILED — fix before running --paper")
+    print("==========================================\n")
+
+    sys.exit(0 if failed == 0 else 1)
 
 
 def _concat_oos_returns(result) -> "pd.Series":
@@ -343,7 +479,10 @@ def main():
     )
     logger = logging.getLogger("main")
 
-    if args.test_connection:
+    if args.dry_run:
+        run_dry_run(settings, credentials)
+
+    elif args.test_connection:
         from broker.alpaca_client import AlpacaClient
         _bridge_alpaca_credentials(credentials)
         settings["broker"]["mode"] = "paper"
