@@ -27,12 +27,18 @@ features:
   realized_vol_window: 20           # days for rolling realized variance
   normalization_window: 60          # [2.5-B2 LOCKED] Sweep [45,60,90]: flat across all values. 60 retained.
   ewma_halflife: 10                 # days, for Moreira-Muir realized vol estimate
+  use_vix_slope: false              # [Phase F LOCKED] false. vix_slope marginally helps under full cov
+                                    # (+0.059 Sharpe) but full cov is net -0.144 vs diag baseline.
+                                    # Infrastructure retained. Re-enable only if IS window extended to 3+ years.
+                                    # See design_docs/09, 13, 14.
 
 # ── HMM Engine ──────────────────────────────────────────────
 # Ref: Hamilton (1989, Econometrica); Turner et al. (1989, JFE)
 hmm:
   n_components_range: [3, 7]        # [2.5-C LOCKED] Phase C H2 sweep: [3,5] wins alone (+0.028) but degrades when combined with is_window=378 (0.852 vs 0.940). Kept [3,7] — BIC self-corrects with longer IS.
-  covariance_type: "diag"           # diag = practical default. full = if BIC selects poorly.
+  covariance_type: "diag"           # [Phase F LOCKED] Full/tied tested — both regress Sharpe (full: -0.144, tied: -0.089).
+                                    # Root cause: ~1.9 bars/param at is_window=378 is too tight for reliable cov estimation.
+                                    # EM convergence failures under full cov (large delta warnings). Keep diag.
   n_iter: 100
   tol: 1.0e-4
   n_init: 10                        # K-means restarts; pick best log-likelihood

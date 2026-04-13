@@ -46,22 +46,33 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Feature column order — must be consistent across train and live
-# vix_slope excluded from FEATURE_COLS — computed but not fed to HMM under diag covariance.
-# Re-enable in Phase F with covariance_type='full'. See design_docs/09_theory_vs_empirical_conflicts.md §Case 1.
-FEATURE_COLS = ["log_return", "realized_variance", "vix", "hy_oas", "gold_return", "term_spread"]
+# Base 6-feature set — all peer-reviewed, covariance-type agnostic.
+FEATURE_COLS_BASE = ["log_return", "realized_variance", "vix", "hy_oas", "gold_return", "term_spread"]
+
+# 7-feature set — adds vix_slope (VIX/VIX3M). Only useful under covariance_type='full'
+# because diagonal covariance cannot exploit the ~50% orthogonal variance in vix_slope
+# relative to VIX level. Enable via settings.features.use_vix_slope = true (Phase F).
+# See design_docs/09_theory_vs_empirical_conflicts.md §Case 1.
+FEATURE_COLS_WITH_VIX_SLOPE = ["log_return", "realized_variance", "vix", "vix_slope",
+                                "hy_oas", "gold_return", "term_spread"]
+
+# Module-level alias — reflects current settings at import time.
+# Use FeatureEngineer.feature_cols for the instance-level selection.
+FEATURE_COLS = FEATURE_COLS_BASE
 
 
 class FeatureEngineer:
     """
-    Builds the (T, 6) observation matrix for HMM training and inference.
-    vix_slope is computed internally but excluded from FEATURE_COLS (Phase F re-enable).
+    Builds the (T, 6) or (T, 7) observation matrix for HMM training and inference.
+    Feature set controlled by settings.features.use_vix_slope (default False).
     Persists normalization scaler — apply identical transform at live inference.
     """
 
     def __init__(self, settings: dict):
         self.realized_vol_window = settings["features"]["realized_vol_window"]
         self.norm_window = settings["features"]["normalization_window"]
+        use_vix_slope = settings["features"].get("use_vix_slope", False)
+        self.feature_cols = FEATURE_COLS_WITH_VIX_SLOPE if use_vix_slope else FEATURE_COLS_BASE
         self._scaler_params: dict = {}   # {col: {mean_series, std_series}} stored after fit
 
     def compute(
@@ -123,7 +134,7 @@ class FeatureEngineer:
         else:
             df["vix_slope"] = 1.0
 
-        df = df[FEATURE_COLS].copy()
+        df = df[self.feature_cols].copy()
         df = df.dropna()
 
         # 8. Rolling Z-score normalization
@@ -154,7 +165,7 @@ class FeatureEngineer:
         if not self._scaler_params:
             raise RuntimeError("Scaler not fitted. Call compute() on training data first.")
         result = []
-        for col in FEATURE_COLS:
+        for col in self.feature_cols:
             params = self._scaler_params[col]
             mean = params["mean"].iloc[-1]
             std = params["std"].iloc[-1]
@@ -162,8 +173,8 @@ class FeatureEngineer:
         return np.array(result)
 
     def get_observation_matrix(self, features_df: pd.DataFrame) -> np.ndarray:
-        """Return (T, 6) numpy array for hmmlearn."""
-        return features_df[FEATURE_COLS].values
+        """Return (T, n_features) numpy array for hmmlearn."""
+        return features_df[self.feature_cols].values
 
 
 def compute_log_returns(close: pd.Series) -> pd.Series:

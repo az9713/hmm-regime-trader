@@ -143,11 +143,25 @@ class HMMEngine:
         best_n = n_min
         best_model = None
 
+        d = observations.shape[1]
         for n in range(n_min, n_max + 1):
             try:
                 model = self._train_single(observations, n)
                 log_lik = model.score(observations)
-                n_params = n * n + n * observations.shape[1] * 2  # trans + means + vars (diag)
+                # Parameter count depends on covariance type:
+                #   diag:     n*n (trans) + n*d (means) + n*d (variances)
+                #   full:     n*n (trans) + n*d (means) + n*d*(d+1)/2 (full cov per state)
+                #   tied:     n*n (trans) + n*d (means) + d*(d+1)/2 (one shared cov)
+                #   spherical: n*n (trans) + n*d (means) + n (one variance per state)
+                cov = self.covariance_type
+                if cov == "full":
+                    n_params = n * n + n * d + n * d * (d + 1) // 2
+                elif cov == "tied":
+                    n_params = n * n + n * d + d * (d + 1) // 2
+                elif cov == "spherical":
+                    n_params = n * n + n * d + n
+                else:  # diag (default)
+                    n_params = n * n + n * d * 2
                 bic = -2 * log_lik + n_params * np.log(len(observations))
                 logger.debug(f"  n={n}: log_lik={log_lik:.2f}, BIC={bic:.2f}")
                 if bic < best_bic:
