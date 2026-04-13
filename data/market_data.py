@@ -67,6 +67,18 @@ class DataManager:
         )
         return series.dropna()
 
+    def get_vix3m(self, start: str, end: str = None) -> pd.Series:
+        """
+        CBOE S&P 500 3-Month Volatility Index from FRED VXVCLS (93-day implied vol).
+        Used to compute vix_slope = vix / vix3m.
+        Slope > 1 = backwardation (crisis), < 1 = contango (calm).
+        Ref: Egloff, Leippold & Wu (2010, Journal of Financial Econometrics 8(3):367-413).
+        """
+        series = self.macro_source.get_series(
+            self.settings["data"]["fred_series"]["vix3m"], start, end
+        )
+        return series.dropna()
+
     def get_term_spread(self, start: str, end: str = None) -> pd.Series:
         """
         10yr minus 2yr Treasury yield spread from FRED T10Y2Y.

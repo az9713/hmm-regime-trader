@@ -47,12 +47,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Feature column order — must be consistent across train and live
+# vix_slope excluded from FEATURE_COLS — computed but not fed to HMM under diag covariance.
+# Re-enable in Phase F with covariance_type='full'. See design_docs/09_theory_vs_empirical_conflicts.md §Case 1.
 FEATURE_COLS = ["log_return", "realized_variance", "vix", "hy_oas", "gold_return", "term_spread"]
 
 
 class FeatureEngineer:
     """
     Builds the (T, 6) observation matrix for HMM training and inference.
+    vix_slope is computed internally but excluded from FEATURE_COLS (Phase F re-enable).
     Persists normalization scaler — apply identical transform at live inference.
     """
 
@@ -68,13 +71,14 @@ class FeatureEngineer:
         hy_oas: pd.Series,
         gold: pd.Series = None,
         term_spread: pd.Series = None,
+        vix3m: pd.Series = None,
     ) -> pd.DataFrame:
         """
         Full pipeline: raw OHLCV + macro → normalized (T, 6) feature matrix.
         Returns DataFrame with FEATURE_COLS columns, same index as prices.
 
-        gold and term_spread are optional for backward compatibility;
-        if omitted, those columns are filled with 0 (no regime signal).
+        gold, term_spread, vix3m are optional for backward compatibility;
+        if omitted, those columns use neutral fallbacks (no regime signal).
         """
         df = pd.DataFrame(index=prices.index)
 
@@ -108,13 +112,24 @@ class FeatureEngineer:
         else:
             df["term_spread"] = 0.0
 
+        # 7. VIX slope = VIX / VIX3M — term structure shape signal.
+        #    > 1 = backwardation (crisis), < 1 = contango (calm, normal).
+        #    Ratio is scale-invariant unlike the arithmetic spread VIX3M-VIX.
+        #    Fallback 1.0 = flat term structure (neutral, not extreme contango).
+        #    Ref: Egloff et al. (2010); Eraker & Wu (2017); Simon & Campasano (2014).
+        if vix3m is not None:
+            vix3m_aligned = vix3m.reindex(prices.index, method="ffill", limit=3)
+            df["vix_slope"] = vix_aligned / vix3m_aligned
+        else:
+            df["vix_slope"] = 1.0
+
         df = df[FEATURE_COLS].copy()
         df = df.dropna()
 
-        # 7. Rolling Z-score normalization
+        # 8. Rolling Z-score normalization
         df_norm = self._normalize(df)
 
-        logger.debug(f"Feature matrix: {df_norm.shape}, {df_norm.index[0].date()} → {df_norm.index[-1].date()}")
+        logger.debug(f"Feature matrix: {df_norm.shape}, {df_norm.index[0].date()} -> {df_norm.index[-1].date()}")
         return df_norm
 
     def _normalize(self, df: pd.DataFrame) -> pd.DataFrame:

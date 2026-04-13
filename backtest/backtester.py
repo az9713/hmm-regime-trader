@@ -99,6 +99,7 @@ class WalkForwardBacktester:
         primary_symbol: str = "SPY",
         gold: pd.Series = None,
         term_spread: pd.Series = None,
+        vix3m: pd.Series = None,
     ) -> BacktestResult:
         """
         Run full walk-forward backtest.
@@ -108,15 +109,16 @@ class WalkForwardBacktester:
             vix:            VIX series from FRED
             hy_oas:         HY OAS series from FRED
             primary_symbol: benchmark symbol for buy-hold comparison
-            gold:           Gold price series from FRED (optional, improves regime detection)
-            term_spread:    10yr-2yr yield spread from FRED (optional, macro cycle signal)
+            gold:           GLD price series via yfinance (flight-to-safety signal)
+            term_spread:    10yr-2yr yield spread from FRED (macro cycle signal)
+            vix3m:          93-day implied vol from FRED VXVCLS (for vix_slope = vix/vix3m)
         """
         result = BacktestResult(settings=self.settings)
 
         # Build feature matrix for primary symbol
         fe = FeatureEngineer(self.settings)
         spy_prices = prices[primary_symbol]
-        features = fe.compute(spy_prices, vix, hy_oas, gold=gold, term_spread=term_spread)
+        features = fe.compute(spy_prices, vix, hy_oas, gold=gold, term_spread=term_spread, vix3m=vix3m)
 
         # Align price index to feature index (features drop NaN warm-up rows)
         spy_close = spy_prices["Close"].reindex(features.index)
@@ -138,9 +140,9 @@ class WalkForwardBacktester:
             oos_index = features.index[is_end:oos_end]
 
             logger.info(
-                f"Window {window_idx}: IS {features.index[window_start].date()} → "
+                f"Window {window_idx}: IS {features.index[window_start].date()} -> "
                 f"{features.index[is_end-1].date()} | "
-                f"OOS {features.index[is_end].date()} → {features.index[oos_end-1].date()}"
+                f"OOS {features.index[is_end].date()} -> {features.index[oos_end-1].date()}"
             )
 
             # Train HMM on IS data

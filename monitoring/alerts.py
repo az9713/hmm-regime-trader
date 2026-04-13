@@ -89,12 +89,12 @@ class AlertManager:
         prev_emoji = REGIME_EMOJI.get(prev_regime, "⚪")
         new_emoji = REGIME_EMOJI.get(new_regime, "⚪")
         msg = (
-            f"{prev_emoji}→{new_emoji} *Regime Flip — {symbol}*\n"
-            f"{prev_regime} → *{new_regime}*\n"
+            f"{prev_emoji}->{new_emoji} *Regime Flip -- {symbol}*\n"
+            f"{prev_regime} -> *{new_regime}*\n"
             f"Confidence: {confidence:.0%} | Allocation: {allocation:.0%}\n"
             f"_{datetime.now().strftime('%H:%M:%S ET')}_"
         )
-        logger.info(f"[REGIME FLIP] {symbol}: {prev_regime} → {new_regime} conf={confidence:.2f}")
+        logger.info(f"[REGIME FLIP] {symbol}: {prev_regime} -> {new_regime} conf={confidence:.2f}")
         self._telegram(msg)
 
     def order_filled(

@@ -79,12 +79,13 @@ def run_backtest(settings: dict, start_date: str = None):
     hy_oas = dm.get_hy_oas(start)
     gold = dm.get_gold(start)
     term_spread = dm.get_term_spread(start)
+    vix3m = dm.get_vix3m(start)
     prices = {sym: dm.get_bars(sym, start) for sym in symbols}
 
     # Walk-forward
     backtester = WalkForwardBacktester(settings)
     result = backtester.run(prices, vix, hy_oas, primary_symbol="SPY",
-                            gold=gold, term_spread=term_spread)
+                            gold=gold, term_spread=term_spread, vix3m=vix3m)
 
     # Log all windows
     for window in result.windows:
@@ -108,9 +109,9 @@ def run_backtest(settings: dict, start_date: str = None):
     # Stress tests
     logger.info("Running stress period tests...")
     stress = StressTester(settings)
-    stress_results = stress.run_all(prices, vix, hy_oas, gold=gold, term_spread=term_spread)
+    stress_results = stress.run_all(prices, vix, hy_oas, gold=gold, term_spread=term_spread, vix3m=vix3m)
     for name, sr in stress_results.items():
-        status = "PASS ✓" if sr.detection_pass else "FAIL ✗"
+        status = "PASS" if sr.detection_pass else "FAIL"
         print(f"\nStress [{name}]: {status} | HighVol={sr.high_vol_pct:.0%} | AvgAlloc={sr.avg_allocation:.2f}")
 
 
@@ -161,10 +162,11 @@ def run_paper(settings: dict, credentials: dict = None):
     hy_oas = dm.get_hy_oas(warmup_start)
     gold = dm.get_gold(warmup_start)
     term_spread = dm.get_term_spread(warmup_start)
+    vix3m = dm.get_vix3m(warmup_start)
     spy_prices = dm.get_bars("SPY", warmup_start)
 
     engine = HMMEngine(settings)
-    features = fe.compute(spy_prices, vix, hy_oas, gold=gold, term_spread=term_spread)
+    features = fe.compute(spy_prices, vix, hy_oas, gold=gold, term_spread=term_spread, vix3m=vix3m)
     engine.fit(features.values)
     logger.info(f"HMM trained on warmup data: n_states={engine.n_states}")
 
@@ -178,10 +180,11 @@ def run_paper(settings: dict, credentials: dict = None):
             recent_oas = dm.get_hy_oas(warmup_start)
             recent_gold = dm.get_gold(warmup_start)
             recent_ts = dm.get_term_spread(warmup_start)
+            recent_vix3m = dm.get_vix3m(warmup_start)
 
             # Features
             feat = fe.compute(recent_prices, recent_vix, recent_oas,
-                              gold=recent_gold, term_spread=recent_ts)
+                              gold=recent_gold, term_spread=recent_ts, vix3m=recent_vix3m)
             if len(feat) < 10:
                 return
 
