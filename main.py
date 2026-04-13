@@ -52,9 +52,25 @@ def parse_args():
     group.add_argument("--backtest", action="store_true", help="Walk-forward backtest on historical data")
     group.add_argument("--paper", action="store_true", help="Paper trading via Alpaca")
     group.add_argument("--live", action="store_true", help="LIVE trading — real money. Requires CONFIRM.")
+    group.add_argument("--test-connection", action="store_true", help="Test Alpaca connectivity and exit")
     parser.add_argument("--config", default="config/settings.yaml", help="Path to settings.yaml")
     parser.add_argument("--start", default=None, help="Backtest start date (YYYY-MM-DD)")
     return parser.parse_args()
+
+
+def _bridge_alpaca_credentials(credentials: dict):
+    """
+    Load Alpaca keys from credentials.yaml into env vars if env vars are not already set.
+    Env vars take precedence (useful for CI / Docker environments).
+    """
+    if not os.getenv("ALPACA_API_KEY"):
+        alpaca_creds = credentials.get("alpaca", {})
+        api_key = alpaca_creds.get("api_key")
+        secret_key = alpaca_creds.get("secret_key")
+        if api_key and secret_key:
+            os.environ["ALPACA_API_KEY"] = api_key
+            os.environ["ALPACA_SECRET_KEY"] = secret_key
+            logging.getLogger("main").info("Alpaca credentials loaded from credentials.yaml")
 
 
 def run_backtest(settings: dict, start_date: str = None):
@@ -141,14 +157,17 @@ def run_paper(settings: dict, credentials: dict = None):
 
     logger.info("Starting paper trading session...")
 
+    # Credentials — env vars take precedence, credentials.yaml as fallback
+    _bridge_alpaca_credentials(credentials or {})
+
     # Broker
     client = AlpacaClient(settings)
     client.connect()
     executor = OrderExecutor(client, settings)
     tracker = PositionTracker(client)
 
-    # Data + features
-    dm = DataManager(settings, mode="live")
+    # Data + features — share the same AlpacaClient (one connection)
+    dm = DataManager(settings, mode="live", alpaca_client=client)
     fe = FeatureEngineer(settings)
 
     # Risk + signals
@@ -324,7 +343,23 @@ def main():
     )
     logger = logging.getLogger("main")
 
-    if args.live:
+    if args.test_connection:
+        from broker.alpaca_client import AlpacaClient
+        _bridge_alpaca_credentials(credentials)
+        settings["broker"]["mode"] = "paper"
+        client = AlpacaClient(settings)
+        client.connect()
+        account = client.get_account()
+        print("\n=== Alpaca Connection Test ===")
+        print(f"  Status:          OK")
+        print(f"  Mode:            paper")
+        print(f"  Portfolio value: ${account['portfolio_value']:,.2f}")
+        print(f"  Buying power:    ${account['buying_power']:,.2f}")
+        print(f"  Cash:            ${account['cash']:,.2f}")
+        print("==============================\n")
+        sys.exit(0)
+
+    elif args.live:
         print("\n" + "="*60)
         print("WARNING: LIVE TRADING MODE — REAL MONEY AT RISK")
         print("="*60)

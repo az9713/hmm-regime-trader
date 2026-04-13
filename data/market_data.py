@@ -31,7 +31,7 @@ class DataManager:
     mode='live' uses Alpaca WebSocket + FRED.
     """
 
-    def __init__(self, settings: dict, mode: str = "backtest"):
+    def __init__(self, settings: dict, mode: str = "backtest", alpaca_client=None):
         self.settings = settings
         self.mode = mode
         self.cache_dir = settings["data"].get("cache_dir", "data/cache")
@@ -40,7 +40,7 @@ class DataManager:
         if mode == "backtest":
             self.price_source = YFinanceSource(repair=settings["data"].get("repair", True))
         else:
-            self.price_source = AlpacaSource(settings)
+            self.price_source = AlpacaSource(settings, client=alpaca_client)
 
         self.macro_source = FREDSource()
 
@@ -159,13 +159,20 @@ class AlpacaSource:
     """
     Alpaca data feed. Used for live trading to ensure price consistency
     with execution feed (CTA/UTP official feeds).
+    Delegates to an AlpacaClient instance (shared with broker layer — one connection).
     """
 
-    def __init__(self, settings: dict):
+    def __init__(self, settings: dict, client=None):
         self.settings = settings
+        self._client = client
 
     def get_bars(self, symbol: str, start: str, end: str = None) -> pd.DataFrame:
-        raise NotImplementedError("Alpaca live source — implement in Phase 5")
+        if self._client is None:
+            raise RuntimeError(
+                "AlpacaSource requires a connected AlpacaClient. "
+                "Pass alpaca_client= to DataManager."
+            )
+        return self._client.get_bars(symbol, start, end)
 
 
 class FREDSource:
