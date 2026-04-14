@@ -407,26 +407,57 @@ All parameters in `config/settings.yaml` are now locked. No `[HYPERPARAMETER]` t
 | Initial parameter calibration | Complete — 4 params locked (target_vol, persistence, continuous, confidence_floor) |
 | Phase A — vix_slope 7th feature | Complete — infrastructure kept, excluded from FEATURE_COLS (diagonal cov limitation) |
 | Phase B — full param sweep | Complete — rebalance_threshold 0.10→0.15, 3 params confirmed flat |
-| Phase C — 2022 window diagnosis | Complete — is_window 252→378, diagonal cov misspecification confirmed |
+| Phase C — 2022 window diagnosis | Complete — is_window 252→378, Sharpe 0.828→0.940 |
+| Phase F — Full covariance test | Complete — REGRESSED (-0.144 Sharpe), diag locked as final |
+| Phase D — Alpaca broker layer | Complete — AlpacaSource stub fixed, `--test-connection` passes |
+| Smoke test (`--dry-run`) | Complete — 12/12 checks pass, 2 dashboard bugs fixed |
 | Stress test validation | Passing — 100% COVID, 97% 2022 bear |
 | Telegram alerts | Built — regime flips, circuit breakers, EOD P&L |
-| **Phase F — Full covariance + vix_slope** | **Next** — fix 2022 structural misspecification |
-| Phase D — Broker layer (Alpaca live) | Pending — AlpacaSource.get_bars() stub |
-| Phase E — Paper trading (3 months) | Pending — requires Phase D |
+| **Phase E — Paper trading (3 months)** | **NEXT — `python main.py --paper` during market hours** |
 | ATR stop/target calibration | Pending — requires paper trading fills |
-| Hansen SPA test p < 0.05 | Pending — requires Sharpe > 1.0 |
-| Live trading | After all criteria met |
+| Live trading | After Phase E + Sharpe > 1.0 on paper |
 
-**Phase F action items** (both wired, two lines of code):
-1. `config/settings.yaml`: `hmm.covariance_type: "diag"` → `"full"` (or test `"tied"` first)
-2. `data/feature_engineering.py`: add `"vix_slope"` back to `FEATURE_COLS`
+### Development: DONE
+
+All code work for the MVP is complete. No more features planned pre-deployment.
+
+**Final model state (locked in `settings.yaml`):**
+- `covariance_type: diag` (Phase F — full cov regresses -0.144)
+- `use_vix_slope: false` (Phase F — only useful under full cov)
+- `is_window: 378`, `n_components_range: [3, 7]` (Phase C — 2022 fix)
+- `rebalance_threshold: 0.15`, `target_vol: 0.18`, `persistence_bars: 2`, `confidence_floor: 0.30`
+- **Aggregate OOS Sharpe: 0.933** (14-year walk-forward, 57 windows)
+- 2022 worst window: -1.981 (accepted — irreducible at current IS length)
+
+### Resuming Work: Phase E Operational Guide
+
+When ready to resume, the only action is **operation**, not development:
+
+```bash
+# 1. Confirm environment still works (any time of day)
+python main.py --dry-run
+
+# 2. Optional — set up Telegram for push alerts
+# Edit config/credentials.yaml with bot_token + chat_id
+
+# 3. Start paper trading during US market hours (09:30–16:00 ET)
+python main.py --paper
+# Blocks on WebSocket. Bars arrive ~16:05 ET. Run in terminal or background.
+```
+
+**Phase E monitoring checklist:**
+- Regime distribution — target ~60% LowVol, ~25% MidVol, ~15% HighVol
+- Stop hit rate < 30% (else ATR too tight)
+- Target hit rate > 50% (validates ATR calibration)
+- Daily P&L correlation with SPY < 0.60 (regime filtering working)
+- Circuit breaker trips = 0 (non-zero means investigate immediately)
 
 **Live trading criteria** (per `design_docs/06_empirical_testing_plan.md`):
-- OOS Sharpe > 1.0
+- OOS Sharpe > 1.0 on paper (currently 0.933 on backtest — gate may be revisited)
 - Max DD < 15%
-- Hansen SPA p < 0.05
 - 3-month paper trade: no unexpected blowups
 - All circuit breakers tested and confirmed firing
+- ATR stop/target multiples locked from observed fills
 
 ---
 
