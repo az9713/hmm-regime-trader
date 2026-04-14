@@ -54,6 +54,22 @@ stability:
   flicker_threshold: 4              # [2.5-B2 LOCKED] Sweep [3,4,5,6]: completely flat — detector rarely fires. 4 retained.
   confidence_floor: 0.30            # [2.5-E LOCKED] Optimal from sweep [0.30,0.40,0.50]. Lower floor → more regime-specific allocation in bull markets.
 
+# ── Regime Forecaster ───────────────────────────────────────
+# Forward-projects HMM posterior along transition matrix to compute:
+#   - k-step regime distribution        π_{t+k} = π_t · A^k
+#   - Expected sojourn time              E[duration|S=i] = 1/(1-A_ii)
+#   - Transition risk score              P(exit current regime within H bars)
+#   - Stationary distribution            π* solving π* A = π*
+# Pure HMM math, no free parameters → no overfitting risk.
+# Used as a LEAD signal (alerts before stability filter commits).
+# Ref: Hamilton (1989); Norris (1997) "Markov Chains"; Guidolin & Timmermann (2007, JEDC).
+forecast:
+  enabled: true
+  horizon: 20                       # bars to project forward
+  risk_horizon: 5                   # horizon for transition_risk scalar
+  alert_threshold: 0.50             # P(exit) above this triggers a Telegram lead alert
+  alert_cooldown_bars: 20           # min bars between transition alerts per symbol
+
 # ── Allocation ──────────────────────────────────────────────
 # Ref: Moreira & Muir (2017, Journal of Finance 72(4):1611-1644)
 # Primary: continuous formula w = min(target_vol / ewma_vol, max_leverage)

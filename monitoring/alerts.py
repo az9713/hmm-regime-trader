@@ -118,6 +118,41 @@ class AlertManager:
         logger.info(f"[ORDER FILLED] {symbol} {side} {qty}@{fill_price:.2f}")
         self._telegram(msg)
 
+    def regime_transition_warning(
+        self,
+        symbol: str,
+        current_regime: str,
+        next_regime: str,
+        transition_risk: float,
+        risk_horizon: int,
+        expected_sojourn: float,
+    ):
+        """
+        LEAD signal — fired by RegimeForecaster *before* the stability filter
+        commits to a regime change. Tells the user "a flip is probable soon"
+        so they can pre-position rather than react.
+
+        Suppress duplicates at the call site (e.g., once per regime per day).
+        """
+        cur_emoji = REGIME_EMOJI.get(current_regime, "\u26aa")
+        nxt_emoji = REGIME_EMOJI.get(next_regime, "\u26aa")
+        sojourn_str = (
+            f"{expected_sojourn:.1f} bars"
+            if expected_sojourn != float("inf") else "infinite"
+        )
+        msg = (
+            f"\u26a0\ufe0f *Transition Risk -- {symbol}*\n"
+            f"Current: {cur_emoji} {current_regime}  ->  {nxt_emoji} *{next_regime}* (likely)\n"
+            f"P(exit within {risk_horizon} bars): *{transition_risk:.0%}*\n"
+            f"Expected sojourn: {sojourn_str}\n"
+            f"_{datetime.now().strftime('%H:%M:%S ET')}_"
+        )
+        logger.warning(
+            f"[TRANSITION RISK] {symbol}: {current_regime}->{next_regime} "
+            f"P(exit/{risk_horizon})={transition_risk:.2f} sojourn={sojourn_str}"
+        )
+        self._telegram(msg)
+
     # ── 🟡 Daily summary ───────────────────────────────────────
 
     def daily_summary(
