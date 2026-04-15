@@ -132,6 +132,10 @@ class HMMEngine:
         self._bars_in_regime: int = 0
         self._bars_since_retrain: int = 0
 
+        # Latest log α vector (n_states,), set by step()/predict_regime()
+        # for downstream consumers such as RegimeForecaster.
+        self._last_log_alpha: Optional[np.ndarray] = None
+
     def fit(self, observations: np.ndarray) -> int:
         """
         Train HMM. BIC sweep selects optimal state count.
@@ -219,6 +223,8 @@ class HMMEngine:
             raise RuntimeError("Model not fitted. Call fit() first.")
 
         log_alphas, confidences = forward_algorithm_log(self.model, observations)
+        # Persist the final log α for any downstream forecaster
+        self._last_log_alpha = log_alphas[-1].copy()
         raw_regimes = np.argmax(log_alphas, axis=1)
 
         results = []
@@ -248,6 +254,7 @@ class HMMEngine:
         # For a single new observation we just use the prior + emission
         log_init = np.log(self.model.startprob_ + 1e-300)
         log_alpha = log_init + log_emission[0]
+        self._last_log_alpha = log_alpha.copy()
         conf = float(np.exp(log_alpha - logsumexp(log_alpha)).max())
         raw = int(np.argmax(log_alpha))
         label = self.state_labels.get(raw, RegimeLabel.UNCERTAINTY)
@@ -263,6 +270,32 @@ class HMMEngine:
             bars_in_regime=self._bars_in_regime,
             n_states_selected=self.n_states,
         )
+
+    def forecast(self, horizon: int = 20, risk_horizon: int = 5):
+        """
+        Build a forward-looking regime forecast from the latest filtered
+        posterior. Must be called *after* `step()` or `predict_regime()`
+        so that the internal log α vector is populated.
+
+        Returns a `RegimeForecast` with k-step regime distributions,
+        expected sojourn time, transition risk, and stationary distribution.
+        See core/regime_forecaster.py for the full API.
+        """
+        if self.model is None:
+            raise RuntimeError("Model not fitted.")
+        if self._last_log_alpha is None:
+            raise RuntimeError(
+                "No posterior available — call step() or predict_regime() first."
+            )
+        # Local import to avoid a circular import at module load time.
+        from core.regime_forecaster import RegimeForecaster
+        forecaster = RegimeForecaster(
+            transmat=self.model.transmat_,
+            state_labels=self.state_labels,
+            horizon=horizon,
+            risk_horizon=risk_horizon,
+        )
+        return forecaster.forecast_from_log_alpha(self._last_log_alpha, horizon=horizon)
 
     def needs_retrain(self) -> bool:
         return self._bars_since_retrain >= self.retrain_every
